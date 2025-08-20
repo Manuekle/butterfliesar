@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/hub_screen.dart';
 import 'screens/species_selection_screen.dart';
@@ -36,67 +37,9 @@ class MariposarioApp extends StatelessWidget {
     return MaterialApp(
       title: 'Mariposario RA',
       theme: ThemeData.light().copyWith(
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w700,
-          ),
-          displayMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          displaySmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          titleLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          titleMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          titleSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          bodyLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          bodyMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          bodySmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          labelLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          labelMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          labelSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: TextStyle(
-            fontFamily: 'Geist',
+        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
+        appBarTheme: AppBarTheme(
+          titleTextStyle: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -104,67 +47,9 @@ class MariposarioApp extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData.dark().copyWith(
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w700,
-          ),
-          displayMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          displaySmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          headlineSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          titleLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w600,
-          ),
-          titleMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          titleSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          bodyLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          bodyMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          bodySmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-          labelLarge: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          labelMedium: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w500,
-          ),
-          labelSmall: TextStyle(
-            fontFamily: 'Geist',
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        appBarTheme: const AppBarTheme(
-          titleTextStyle: TextStyle(
-            fontFamily: 'Geist',
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        appBarTheme: AppBarTheme(
+          titleTextStyle: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
