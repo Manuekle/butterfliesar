@@ -32,12 +32,14 @@ dependencies:
     sdk: flutter
   provider: ^6.1.1
   google_fonts: ^6.1.0
-  mobile_scanner: ^3.5.2
+  mobile_scanner: ^3.5.7
+  permission_handler: ^10.4.5
   ar_flutter_plugin: ^0.7.3
   audioplayers: ^5.2.1
   vibration: ^1.7.7
   vector_math: ^2.1.4
   path: ^1.8.3
+  camera: ^0.10.5+2
 
 dev_dependencies:
   flutter_test:

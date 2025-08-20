@@ -1,5 +1,7 @@
+// qr_scan_screen.dart
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:butterfliesar/models/butterfly_loader.dart';
 import 'package:butterfliesar/models/butterfly.dart';
 import 'package:butterfliesar/screens/animated_butterfly_view.dart';
@@ -20,13 +22,18 @@ class _QRScanScreenState extends State<QRScanScreen>
   bool _isScanning = true;
   bool _hasDetected = false;
   String? _lastScannedCode;
+  bool _hasCameraPermission = false;
+  bool _isCheckingPermission = true;
 
   @override
   void initState() {
     super.initState();
-
     _scannerController = MobileScannerController();
+    _initAnimation();
+    _checkCameraPermission();
+  }
 
+  void _initAnimation() {
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -37,11 +44,74 @@ class _QRScanScreenState extends State<QRScanScreen>
     );
   }
 
-  @override
-  void dispose() {
-    _scannerController.dispose();
-    _animationController.dispose();
-    super.dispose();
+  Future<void> _checkCameraPermission() async {
+    final status = await Permission.camera.status;
+
+    if (!status.isGranted) {
+      // Only request if we haven't permanently denied the permission
+      if (status.isPermanentlyDenied) {
+        // On iOS, this means the user selected "Don't Ask Again"
+        if (mounted) {
+          setState(() {
+            _hasCameraPermission = false;
+            _isCheckingPermission = false;
+          });
+          _showPermissionDeniedDialog();
+        }
+        return;
+      }
+
+      // Request permission if not permanently denied
+      final result = await Permission.camera.request();
+      if (mounted) {
+        setState(() {
+          _hasCameraPermission = result.isGranted;
+          _isCheckingPermission = false;
+        });
+
+        if (!result.isGranted && !result.isPermanentlyDenied) {
+          // Show dialog if user denied but didn't select "Don't Ask Again"
+          _showPermissionDeniedDialog();
+        } else if (result.isPermanentlyDenied) {
+          // Show dialog if user selected "Don't Ask Again"
+          _showPermissionDeniedDialog();
+        }
+      }
+    } else {
+      // Permission already granted
+      if (mounted) {
+        setState(() {
+          _hasCameraPermission = true;
+          _isCheckingPermission = false;
+        });
+      }
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permiso de cámara requerido'),
+        content: const Text(
+          'Para escanear códigos QR, necesitamos acceso a la cámara. '
+          'Por favor, activa los permisos de cámara en la configuración de la aplicación.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              openAppSettings();
+              Navigator.pop(context);
+            },
+            child: const Text('Abrir configuración'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _onBarcodeDetect(BarcodeCapture capture) async {
@@ -52,7 +122,6 @@ class _QRScanScreenState extends State<QRScanScreen>
 
     if (code == null || code.isEmpty) return;
 
-    // Evitar múltiples detecciones del mismo código
     if (_lastScannedCode == code) return;
 
     setState(() {
@@ -61,15 +130,11 @@ class _QRScanScreenState extends State<QRScanScreen>
       _lastScannedCode = code;
     });
 
-    // Vibración de feedback
-    _showScanFeedback();
-
     try {
       final butterflies = await loadButterfliesFromAssets();
       final butterfly = _findButterflyByCode(butterflies, code);
 
       if (butterfly != null && mounted) {
-        // Navegar a la vista de la mariposa
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
@@ -101,48 +166,30 @@ class _QRScanScreenState extends State<QRScanScreen>
   }
 
   Butterfly? _findButterflyByCode(List<Butterfly> butterflies, String code) {
-    // Buscar por ID exacto
     try {
       return butterflies.firstWhere(
         (b) => b.id.toLowerCase() == code.toLowerCase(),
       );
-    } catch (e) {
-      // No encontrado por ID
-    }
-
-    // Buscar por nombre común
+    } catch (_) {}
     try {
       return butterflies.firstWhere(
         (b) =>
             b.name.toLowerCase().replaceAll(' ', '') ==
             code.toLowerCase().replaceAll(' ', ''),
       );
-    } catch (e) {
-      // No encontrado por nombre
-    }
-
-    // Buscar por nombre científico
+    } catch (_) {}
     try {
       return butterflies.firstWhere(
         (b) =>
             b.scientificName.toLowerCase().replaceAll(' ', '') ==
             code.toLowerCase().replaceAll(' ', ''),
       );
-    } catch (e) {
-      // No encontrado
-    }
-
+    } catch (_) {}
     return null;
-  }
-
-  void _showScanFeedback() {
-    // Aquí podrías agregar vibración si tienes el paquete vibration
-    // Vibration.vibrate(duration: 100);
   }
 
   void _showNotFoundDialog(String code) {
     final theme = Theme.of(context);
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -179,7 +226,6 @@ class _QRScanScreenState extends State<QRScanScreen>
 
   void _showErrorDialog(String error) {
     final theme = Theme.of(context);
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -225,8 +271,46 @@ class _QRScanScreenState extends State<QRScanScreen>
   }
 
   @override
+  void dispose() {
+    _scannerController.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    if (_isCheckingPermission) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (!_hasCameraPermission) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Permiso requerido')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              const Text(
+                'Se requiere permiso de cámara',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _checkCameraPermission,
+                child: const Text('Reintentar'),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: openAppSettings,
+                child: const Text('Abrir configuración'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -245,20 +329,13 @@ class _QRScanScreenState extends State<QRScanScreen>
       ),
       body: Stack(
         children: [
-          // Escáner
           MobileScanner(
             controller: _scannerController,
             onDetect: _onBarcodeDetect,
             fit: BoxFit.cover,
           ),
-
-          // Overlay de escaneo
           _buildScanOverlay(),
-
-          // Instrucciones
-          _buildInstructions(theme),
-
-          // Estado de carga
+          _buildInstructions(Theme.of(context)),
           if (_hasDetected) _buildLoadingOverlay(),
         ],
       ),
@@ -280,10 +357,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Stack(
-                children: [
-                  // Esquinas
-                  ...List.generate(4, (index) => _buildCorner(index)),
-                ],
+                children: List.generate(4, (index) => _buildCorner(index)),
               ),
             ),
           );
@@ -295,12 +369,11 @@ class _QRScanScreenState extends State<QRScanScreen>
   Widget _buildCorner(int index) {
     const size = 20.0;
     const thickness = 4.0;
-
     late final Alignment alignment;
     late final Widget child;
 
     switch (index) {
-      case 0: // Top-left
+      case 0:
         alignment = Alignment.topLeft;
         child = Container(
           width: size,
@@ -313,7 +386,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           ),
         );
         break;
-      case 1: // Top-right
+      case 1:
         alignment = Alignment.topRight;
         child = Container(
           width: size,
@@ -326,7 +399,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           ),
         );
         break;
-      case 2: // Bottom-left
+      case 2:
         alignment = Alignment.bottomLeft;
         child = Container(
           width: size,
@@ -339,7 +412,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           ),
         );
         break;
-      case 3: // Bottom-right
+      case 3:
         alignment = Alignment.bottomRight;
         child = Container(
           width: size,

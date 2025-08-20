@@ -1,0 +1,7 @@
+{
+  "name": "Mariposa Monarca",
+  "scientificName": "Danaus plexippus",
+  "imageAsset": "assets/images/test.png",
+  "modelAsset": "assets/models/test.glb",
+  "ambientSound": "assets/sounds/test.mp3"
+}
