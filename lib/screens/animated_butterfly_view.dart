@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'ar_experience_screen.dart';
 import 'butterfly_static_screen.dart';
-import '../models/butterfly.dart';
-import '../utils/ar_helpers.dart';
+import 'package:butterfliesar/models/butterfly.dart';
+import 'package:butterfliesar/utils/ar_helpers.dart';
 import 'package:vibration/vibration.dart';
-import '../widgets/animated_toast.dart';
+import 'package:butterfliesar/widgets/animated_toast.dart';
 
 /// Widget que alterna suavemente entre AR y modo estático con fade+slide.
 class AnimatedButterflyView extends StatefulWidget {
@@ -13,9 +13,9 @@ class AnimatedButterflyView extends StatefulWidget {
 
   const AnimatedButterflyView({
     required this.butterfly,
-    Key? key,
+    super.key,
     this.initialAR = true,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedButterflyView> createState() => _AnimatedButterflyViewState();
@@ -45,7 +45,7 @@ class _AnimatedButterflyViewState extends State<AnimatedButterflyView> {
 
   Future<void> _toggleMode() async {
     setState(() => _showAR = !_showAR);
-    if (await Vibration.hasVibrator()) {
+    if (await Vibration.hasVibrator() ?? false) {
       Vibration.vibrate(duration: 30, amplitude: 60);
     }
     setState(() {

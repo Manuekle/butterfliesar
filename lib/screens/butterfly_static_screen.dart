@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/butterfly.dart';
+import 'package:butterfliesar/models/butterfly.dart';
 
 class ButterflyStaticScreen extends StatelessWidget {
   final Butterfly butterfly;
@@ -8,10 +8,10 @@ class ButterflyStaticScreen extends StatelessWidget {
 
   const ButterflyStaticScreen({
     required this.butterfly,
-    Key? key,
+    super.key,
     this.onSwitchToAR,
     this.canSwitchToAR = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

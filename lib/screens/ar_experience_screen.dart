@@ -12,15 +12,17 @@ import 'package:ar_flutter_plugin/models/ar_node.dart';
 import 'package:butterfliesar/models/butterfly.dart';
 import 'package:vector_math/vector_math_64.dart';
 
-import '../widgets/ar_controls.dart';
+import 'package:butterfliesar/widgets/ar_controls.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class ARExperienceScreen extends StatefulWidget {
   final Butterfly butterfly;
   final VoidCallback? onSwitchToStatic;
-  const ARExperienceScreen(
-      {required this.butterfly, Key? key, this.onSwitchToStatic})
-      : super(key: key);
+  const ARExperienceScreen({
+    required this.butterfly,
+    super.key,
+    this.onSwitchToStatic,
+  });
   @override
   State<ARExperienceScreen> createState() => _ARExperienceScreenState();
 }
@@ -49,13 +51,18 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 800));
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controlsFade = CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeIn));
+      parent: _controller,
+      curve: const Interval(0.5, 1.0, curve: Curves.easeIn),
+    );
     Timer(const Duration(milliseconds: 80), () => _controller.forward());
   }
 
@@ -207,9 +214,11 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.camera_alt_outlined,
-                          size: 80,
-                          color: Theme.of(context).colorScheme.primary),
+                      Icon(
+                        Icons.camera_alt_outlined,
+                        size: 80,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(height: 24),
                       Text(
                         'Apunta la cámara a una superficie plana para ver la mariposa en RA.',

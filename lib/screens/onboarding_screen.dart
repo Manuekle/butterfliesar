@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -10,316 +9,279 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<Map<String, String>> onboardingData = [
-    {
-      'title': 'Descubre el Mundo de las Mariposas',
-      'description':
-          'Explora diferentes especies de mariposas en realidad aumentada y aprende sobre su hábitat y características únicas.',
-      'icon': '🦋',
-    },
-    {
-      'title': 'Experiencia Inmersiva',
-      'description':
-          'Observa las mariposas desde todos los ángulos en tu entorno real con tecnología AR.',
-      'icon': '👁️',
-    },
-    {
-      'title': 'Aprende Jugando',
-      'description':
-          'Datos interesantes y características interactivas para una experiencia educativa única.',
-      'icon': '📚',
-    },
+  final List<OnboardingItem> _items = [
+    OnboardingItem(
+      icon: Icons.flutter_dash_outlined,
+      title: 'Descubre Mariposas',
+      description:
+          'Explora el fascinante mundo de las mariposas con tecnología de realidad aumentada.',
+    ),
+    OnboardingItem(
+      icon: Icons.camera_alt_outlined,
+      title: 'Experiencia Inmersiva',
+      description:
+          'Observa especies únicas en tu entorno real y aprende sobre sus características.',
+    ),
+    OnboardingItem(
+      icon: Icons.school_outlined,
+      title: 'Aprende Interactivamente',
+      description:
+          'Accede a información detallada y datos fascinantes de cada especie.',
+    ),
   ];
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
+
+    _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
+      vsync: this,
     );
-    _controller.forward();
 
-    // Set system UI overlay style
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
     );
-  }
 
-  void _onPageChanged(int page) {
-    if (mounted) {
-      setState(() {
-        _currentPage = page;
-      });
-    }
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+
+    // Iniciar animaciones
+    _fadeController.forward();
+    _slideController.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _fadeController.dispose();
+    _slideController.dispose();
     _pageController.dispose();
     super.dispose();
   }
 
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentPage = index;
+    });
+  }
+
+  void _nextPage() {
+    if (_currentPage < _items.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _navigateToHub();
+    }
+  }
+
+  void _navigateToHub() {
+    Navigator.of(context).pushReplacementNamed('/hub');
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Modern color palette
-    final primaryColor = const Color(0xFF5E35B1); // Deep Purple
-    final backgroundColor = const Color(0xFFF8F5FF); // Very Light Purple
-    final textColor = const Color(0xFF2D3748); // Dark Gray
-    final lightTextColor = const Color(0xFF718096); // Light Gray
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Skip Button (minimalist version)
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8.0, right: 16.0),
-                child: TextButton(
-                  onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/hub'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: lightTextColor,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: Text(
-                    'Saltar',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            children: [
+              // Header con botón skip
+              _buildHeader(context, theme),
 
-            // PageView for onboarding slides
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                itemCount: onboardingData.length,
-                physics: const BouncingScrollPhysics(),
-                itemBuilder: (context, index) {
-                  final item = onboardingData[index];
-                  return AnimatedBuilder(
-                    animation: _pageController,
-                    builder: (context, child) {
-                      double value = 1.0;
-                      if (_pageController.position.haveDimensions) {
-                        value = _pageController.page! - index;
-                        value = (1 - (value.abs() * 0.3)).clamp(0.0, 1.0);
-                      }
-                      return Opacity(
-                        opacity: value,
-                        child: Transform.scale(scale: value, child: child),
-                      );
+              // Contenido principal
+              Expanded(
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      return _buildPage(_items[index], theme);
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32.0,
-                        vertical: 20,
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 20),
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryColor.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Minimalist Icon
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: primaryColor.withOpacity(0.08),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  item['icon']!,
-                                  style: const TextStyle(fontSize: 36),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            // Title
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 24.0,
-                                bottom: 12.0,
-                              ),
-                              child: Text(
-                                item['title']!,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: textColor,
-                                  height: 1.3,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            // Description
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24.0,
-                              ),
-                              child: Text(
-                                item['description']!,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: lightTextColor,
-                                  height: 1.6,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            // Minimalist Page Indicator
-            Padding(
-              padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  onboardingData.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: _currentPage == index ? 16 : 6,
-                    height: 6,
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: _currentPage == index
-                          ? primaryColor
-                          : primaryColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
 
-            // Navigation Buttons
-            Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Back Button (only show if not on first page)
-                  if (_currentPage > 0)
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: primaryColor.withOpacity(0.7),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
-                      ),
-                      onPressed: () {
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: const Text('ATRÁS'),
-                    )
-                  else
-                    const SizedBox(width: 80), // For proper alignment
-                  // Next/Get Started Button (minimalist)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32.0,
-                      vertical: 16.0,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < onboardingData.length - 1) {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          Navigator.pushReplacementNamed(context, '/hub');
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _currentPage == onboardingData.length - 1
-                                ? 'Comenzar'
-                                : 'Siguiente',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          if (_currentPage < onboardingData.length - 1)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: Icon(
-                                Icons.arrow_forward_rounded,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              // Indicadores y navegación
+              _buildBottomSection(context, theme),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'MariposAR',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextButton(
+            onPressed: _navigateToHub,
+            child: Text(
+              'Saltar',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPage(OnboardingItem item, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icono
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              item.icon,
+              size: 48,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
+          ),
+
+          const SizedBox(height: 48),
+
+          // Título
+          Text(
+            item.title,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Descripción
+          Text(
+            item.description,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.textTheme.bodyMedium?.color,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomSection(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        children: [
+          // Indicadores de página
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              _items.length,
+              (index) => _buildPageIndicator(index, theme),
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Botón de navegación
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _nextPage,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                _currentPage == _items.length - 1 ? 'Comenzar' : 'Siguiente',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageIndicator(int index, ThemeData theme) {
+    final isActive = index == _currentPage;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      width: isActive ? 24 : 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: isActive
+            ? (isDark ? Colors.white : Colors.black)
+            : (isDark ? Colors.white30 : Colors.black26),
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+  }
+}
+
+class OnboardingItem {
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const OnboardingItem({
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
 }

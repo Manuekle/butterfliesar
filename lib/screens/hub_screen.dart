@@ -1,276 +1,355 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:math' as math;
 
-class HubScreen extends StatelessWidget {
+class HubScreen extends StatefulWidget {
   const HubScreen({super.key});
 
   @override
+  State<HubScreen> createState() => _HubScreenState();
+}
+
+class _HubScreenState extends State<HubScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Color palette
-    final primaryColor = const Color(0xFF5E35B1);
-    final backgroundColor = const Color(0xFFF8F5FF);
-    final textColor = const Color(0xFF2D3748);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: Stack(
-        children: [
-          // Background circles decoration
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primaryColor.withOpacity(0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -150,
-            left: -100,
-            child: Transform.rotate(
-              angle: -math.pi / 4,
-              child: Container(
-                width: 300,
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(40),
-                  color: primaryColor.withOpacity(0.05),
-                ),
-              ),
-            ),
-          ),
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              children: [
+                // App Bar personalizada
+                _buildCustomAppBar(context, isDark),
 
-          // Main content
-          Column(
-            children: [
-              // App Bar
-              AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                title: Text(
-                  'MariposAR',
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: textColor,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                centerTitle: true,
-                actions: [
-                  // Settings button
-                  Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.settings_outlined,
-                        color: textColor.withOpacity(0.7),
-                        size: 24,
-                      ),
-                      tooltip: 'Configuración',
-                      onPressed: () =>
-                          Navigator.pushNamed(context, '/settings'),
+                // Contenido principal
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWelcomeSection(theme),
+                        const SizedBox(height: 32),
+                        _buildQuickActions(context, isDark),
+                        const SizedBox(height: 32),
+                        _buildFeaturesGrid(context, theme),
+                      ],
                     ),
                   ),
-                ],
-              ),
-
-              // Main content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '¡Bienvenido!',
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Explora el maravilloso mundo de las mariposas con realidad aumentada. Escanea un código QR o selecciona una especie para comenzar.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          color: textColor.withOpacity(0.8),
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Features grid
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
-                        ),
-                        children: [
-                          _buildFeatureCard(
-                            context,
-                            title: 'Explorar',
-                            icon: Icons.explore_outlined,
-                            color: const Color(0xFF6C5CE7),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            onTap: () =>
-                                _showComingSoonSnackBar(context, 'Explorar'),
-                          ),
-                          _buildFeatureCard(
-                            context,
-                            title: 'Galería',
-                            icon: Icons.photo_library_outlined,
-                            color: const Color(0xFF00B894),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00B894), Color(0xFF55EFC4)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            onTap: () =>
-                                _showComingSoonSnackBar(context, 'Galería'),
-                          ),
-                          _buildFeatureCard(
-                            context,
-                            title: 'Aprender',
-                            icon: Icons.menu_book_outlined,
-                            color: const Color(0xFFFD79A8),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFD79A8), Color(0xFFFF9FF3)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            onTap: () =>
-                                _showComingSoonSnackBar(context, 'Aprender'),
-                          ),
-                          _buildFeatureCard(
-                            context,
-                            title: 'Jugar',
-                            icon: Icons.videogame_asset_outlined,
-                            color: const Color(0xFFFDCB6E),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFFDCB6E), Color(0xFFFFEAA7)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            onTap: () =>
-                                _showComingSoonSnackBar(context, 'Jugar'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomAppBar(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        children: [
+          Text(
+            'MariposAR',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+            icon: Icon(
+              Icons.settings_outlined,
+              size: 24,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    Gradient? gradient,
-    required VoidCallback onTap,
-  }) {
-    final isGradient = gradient != null;
+  Widget _buildWelcomeSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Explora el mundo\nde las mariposas',
+          style: theme.textTheme.displayMedium?.copyWith(
+            fontWeight: FontWeight.w300,
+            height: 1.2,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Descubre especies únicas con realidad aumentada\ny aprende sobre su fascinante mundo natural.',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.textTheme.bodyMedium?.color,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
 
-    return GestureDetector(
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionButton(
+            context: context,
+            label: 'Escanear QR',
+            icon: Icons.qr_code_scanner_outlined,
+            onTap: () => Navigator.pushNamed(context, '/qr'),
+            isPrimary: true,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _buildActionButton(
+            context: context,
+            label: 'Ver Especies',
+            icon: Icons.explore_outlined,
+            onTap: () => Navigator.pushNamed(context, '/species'),
+            isPrimary: false,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool isPrimary,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E5EA), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+          color: isPrimary
+              ? (isDark ? Colors.white : Colors.black)
+              : theme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: isPrimary
+              ? null
+              : Border.all(color: isDark ? Colors.white24 : Colors.black12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isPrimary
+                  ? (isDark ? Colors.black : Colors.white)
+                  : (isDark ? Colors.white : Colors.black),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: isPrimary
+                    ? (isDark ? Colors.black : Colors.white)
+                    : (isDark ? Colors.white : Colors.black),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: isGradient
-                          ? gradient.colors.first.withOpacity(0.1)
-                          : color.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 26,
-                      color: isGradient ? gradient.colors.first : color,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF2D3748),
-                      letterSpacing: 0.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );
   }
 
-  void _showComingSoonSnackBar(BuildContext context, String feature) {
-    final primaryColor = Theme.of(context).primaryColor;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$feature estará disponible pronto',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+  Widget _buildFeaturesGrid(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Próximamente',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        backgroundColor: primaryColor,
-        elevation: 0,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.2,
+          children: [
+            _buildFeatureCard(
+              context: context,
+              title: 'Galería',
+              subtitle: 'Colección personal',
+              icon: Icons.photo_library_outlined,
+              onTap: () => _showComingSoonDialog(context, 'Galería'),
+            ),
+            _buildFeatureCard(
+              context: context,
+              title: 'Aprender',
+              subtitle: 'Datos fascinantes',
+              icon: Icons.school_outlined,
+              onTap: () => _showComingSoonDialog(context, 'Modo Aprendizaje'),
+            ),
+            _buildFeatureCard(
+              context: context,
+              title: 'Juegos',
+              subtitle: 'Diversión educativa',
+              icon: Icons.games_outlined,
+              onTap: () => _showComingSoonDialog(context, 'Juegos'),
+            ),
+            _buildFeatureCard(
+              context: context,
+              title: 'Comunidad',
+              subtitle: 'Comparte descubrimientos',
+              icon: Icons.people_outline,
+              onTap: () => _showComingSoonDialog(context, 'Comunidad'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+            const Spacer(),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: isDark ? Colors.white54 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showComingSoonDialog(BuildContext context, String feature) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.dialogBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Próximamente',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          '$feature estará disponible en futuras actualizaciones.',
+          style: theme.textTheme.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Entendido',
+              style: TextStyle(
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
