@@ -27,6 +27,8 @@ PODS:
   - BlueCryptor (1.0.32)
   - BlueECC (1.2.5)
   - BlueRSA (1.0.200)
+  - camera_avfoundation (0.0.1):
+    - Flutter
   - device_info_plus (0.0.1):
     - Flutter
   - Firebase/CoreOnly (9.6.0):
@@ -149,6 +151,7 @@ PODS:
 DEPENDENCIES:
   - ar_flutter_plugin (from `.symlinks/plugins/ar_flutter_plugin/ios`)
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
+  - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
@@ -193,6 +196,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/ar_flutter_plugin/ios"
   audioplayers_darwin:
     :path: ".symlinks/plugins/audioplayers_darwin/ios"
+  camera_avfoundation:
+    :path: ".symlinks/plugins/camera_avfoundation/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
@@ -215,6 +220,7 @@ SPEC CHECKSUMS:
   BlueCryptor: b0aee3d9b8f367b49b30de11cda90e1735571c24
   BlueECC: 0d18e93347d3ec6d41416de21c1ffa4d4cd3c2cc
   BlueRSA: dfeef51db96bcc4edec654956c1581adbda4e6a3
+  camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
   device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
   Firebase: 5ae8b7cf8efce559a653aef0ad95bab3f427c351
   FirebaseABTesting: 61826730ce9eee8781ba99a2b3420e9bce148dc9
@@ -247,6 +253,6 @@ SPEC CHECKSUMS:
   SwiftJWT: 88c412708f58c169d431d344c87bc79a87c830ae
   vibration: 8e2f50fc35bb736f9eecb7dd9f7047fbb6a6e888
 
-PODFILE CHECKSUM: 119ef0f0d5a00668d99f42f27c14d81e88abbd5c
+PODFILE CHECKSUM: 5fa1c832d0643a5c07474359382fbd1ba4212b9d
 
 COCOAPODS: 1.16.2

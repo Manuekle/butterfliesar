@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:io';
 
 class HubScreen extends StatefulWidget {
   const HubScreen({super.key});
@@ -320,6 +322,34 @@ class _HubScreenState extends State<HubScreen>
   }
 
   void _showComingSoonDialog(BuildContext context, String feature) {
+    if (Platform.isIOS) {
+      _showCupertinoComingSoonDialog(context, feature);
+    } else {
+      _showMaterialComingSoonDialog(context, feature);
+    }
+  }
+
+  void _showCupertinoComingSoonDialog(BuildContext context, String feature) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Próximamente'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text('$feature estará disponible en futuras actualizaciones.'),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Entendido'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialComingSoonDialog(BuildContext context, String feature) {
     final theme = Theme.of(context);
 
     showDialog(

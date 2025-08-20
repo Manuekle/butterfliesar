@@ -1,8 +1,9 @@
 {
+    "id": "azulreal",
     "name": "Azul Real",
     "scientificName": "Apatura iris",
-    "imageAsset": "assets/images/test.png",
-    "modelAsset": "assets/models/test.glb",
-    "ambientSound": "assets/sounds/test.mp3"
-}
-  
+    "imageAsset": "assets/images/azulreal.png",
+    "modelAsset": "assets/models/azulreal.glb",
+    "ambientSound": "assets/sounds/azulreal.mp3",
+    "description": "El Azul Real es una mariposa europea conocida por el brillo iridiscente de las alas del macho."
+  }

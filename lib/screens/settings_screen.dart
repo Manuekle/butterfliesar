@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import 'package:provider/provider.dart';
 import 'package:butterfliesar/theme/theme_provider.dart';
 
@@ -121,15 +123,14 @@ class _SettingsScreenState extends State<SettingsScreen>
           icon: Icons.code,
           title: 'Código fuente',
           subtitle: 'Ver en GitHub',
-          onTap: () => _showComingSoonSnackBar(context, 'Código fuente'),
+          onTap: () => _showComingSoonDialog(context, 'Código fuente'),
         ),
         _buildListTile(
           context: context,
           icon: Icons.privacy_tip_outlined,
           title: 'Política de privacidad',
           subtitle: 'Cómo manejamos tus datos',
-          onTap: () =>
-              _showComingSoonSnackBar(context, 'Política de privacidad'),
+          onTap: () => _showComingSoonDialog(context, 'Política de privacidad'),
         ),
       ],
     );
@@ -144,21 +145,21 @@ class _SettingsScreenState extends State<SettingsScreen>
           icon: Icons.help_outline,
           title: 'Centro de ayuda',
           subtitle: 'Preguntas frecuentes y guías',
-          onTap: () => _showComingSoonSnackBar(context, 'Centro de ayuda'),
+          onTap: () => _showComingSoonDialog(context, 'Centro de ayuda'),
         ),
         _buildListTile(
           context: context,
           icon: Icons.bug_report_outlined,
           title: 'Reportar problema',
           subtitle: 'Ayúdanos a mejorar la app',
-          onTap: () => _showComingSoonSnackBar(context, 'Reporte de problemas'),
+          onTap: () => _showComingSoonDialog(context, 'Reporte de problemas'),
         ),
         _buildListTile(
           context: context,
           icon: Icons.star_outline,
           title: 'Calificar app',
           subtitle: 'Comparte tu experiencia',
-          onTap: () => _showComingSoonSnackBar(context, 'Calificación'),
+          onTap: () => _showComingSoonDialog(context, 'Calificación'),
         ),
       ],
     );
@@ -295,6 +296,54 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   void _showVersionDialog(BuildContext context) {
+    if (Platform.isIOS) {
+      _showCupertinoVersionDialog(context);
+    } else {
+      _showMaterialVersionDialog(context);
+    }
+  }
+
+  void _showCupertinoVersionDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('MariposAR'),
+        content: const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Versión 1.0.0',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Una aplicación de realidad aumentada para explorar el mundo de las mariposas.',
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Desarrollado con Flutter',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: CupertinoColors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Cerrar'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialVersionDialog(BuildContext context) {
     final theme = Theme.of(context);
 
     showDialog(
@@ -345,7 +394,35 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  void _showComingSoonSnackBar(BuildContext context, String feature) {
+  void _showComingSoonDialog(BuildContext context, String feature) {
+    if (Platform.isIOS) {
+      _showCupertinoComingSoonDialog(context, feature);
+    } else {
+      _showMaterialComingSoonSnackBar(context, feature);
+    }
+  }
+
+  void _showCupertinoComingSoonDialog(BuildContext context, String feature) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Próximamente'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text('$feature estará disponible en futuras actualizaciones.'),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Entendido'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialComingSoonSnackBar(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$feature estará disponible pronto'),

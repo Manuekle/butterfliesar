@@ -1,7 +1,9 @@
 {
-  "name": "Mariposa Monarca",
-  "scientificName": "Danaus plexippus",
-  "imageAsset": "assets/images/test.png",
-  "modelAsset": "assets/models/test.glb",
-  "ambientSound": "assets/sounds/test.mp3"
+  "id": "morpho",
+  "name": "Mariposa Morpho",
+  "scientificName": "Morpho menelaus",
+  "imageAsset": "assets/images/morpho.png",
+  "modelAsset": "assets/models/morpho.glb",
+  "ambientSound": "assets/sounds/morpho.mp3",
+  "description": "La mariposa Morpho es conocida por sus alas azules brillantes y iridiscentes."
 }

@@ -4,11 +4,11 @@ class AnimatedToast extends StatefulWidget {
   final String message;
   final Duration duration;
 
-  const AnimatedToast(
-      {required this.message,
-      Key? key,
-      this.duration = const Duration(seconds: 2)})
-      : super(key: key);
+  const AnimatedToast({
+    required this.message,
+    super.key,
+    this.duration = const Duration(seconds: 2),
+  });
 
   @override
   State<AnimatedToast> createState() => _AnimatedToastState();
@@ -23,7 +23,9 @@ class _AnimatedToastState extends State<AnimatedToast>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _controller.forward();
     Future.delayed(widget.duration, () => _controller.reverse());

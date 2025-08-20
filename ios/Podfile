@@ -39,17 +39,19 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-    
-    # Add camera usage description
+
     target.build_configurations.each do |config|
-      config.build_settings['INFOPLIST_FILE'] ||= 'Runner/Info.plist'
-      
-      # Ensure the camera usage description is set
-      config.build_settings['INFOPLIST_KEY_NSCameraUsageDescription'] = 'Necesitamos acceso a la cámara para escanear códigos QR'
-      config.build_settings['INFOPLIST_KEY_NSMicrophoneUsageDescription'] = 'Necesitamos acceso al micrófono para la funcionalidad de realidad aumentada'
-      
-      # Set minimum iOS version to 10.0
+      # Versión mínima iOS
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+
+      # Habilitar permisos específicos de permission_handler
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        ## Añade los permisos que realmente uses:
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1'
+      ]
     end
   end
 end
+

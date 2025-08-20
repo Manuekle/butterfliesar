@@ -1,5 +1,7 @@
 // qr_scan_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:io';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:butterfliesar/models/butterfly_loader.dart';
@@ -14,7 +16,7 @@ class QRScanScreen extends StatefulWidget {
 }
 
 class _QRScanScreenState extends State<QRScanScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late MobileScannerController _scannerController;
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
@@ -28,9 +30,22 @@ class _QRScanScreenState extends State<QRScanScreen>
   @override
   void initState() {
     super.initState();
-    _scannerController = MobileScannerController();
+    WidgetsBinding.instance.addObserver(this);
+    _scannerController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+    );
     _initAnimation();
     _checkCameraPermission();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Cuando la app regresa del foreground, re-verificar permisos
+    if (state == AppLifecycleState.resumed && !_isCheckingPermission) {
+      _recheckCameraPermission();
+    }
   }
 
   void _initAnimation() {
@@ -44,51 +59,163 @@ class _QRScanScreenState extends State<QRScanScreen>
     );
   }
 
+  // Reemplazar la función _checkCameraPermission() en qr_scan_screen.dart
+
   Future<void> _checkCameraPermission() async {
-    final status = await Permission.camera.status;
+    // Primero verificar el estado actual
+    PermissionStatus status = await Permission.camera.status;
+    print('Estado inicial del permiso: $status');
 
-    if (!status.isGranted) {
-      // Only request if we haven't permanently denied the permission
-      if (status.isPermanentlyDenied) {
-        // On iOS, this means the user selected "Don't Ask Again"
-        if (mounted) {
-          setState(() {
-            _hasCameraPermission = false;
-            _isCheckingPermission = false;
-          });
-          _showPermissionDeniedDialog();
-        }
-        return;
-      }
-
-      // Request permission if not permanently denied
-      final result = await Permission.camera.request();
-      if (mounted) {
-        setState(() {
-          _hasCameraPermission = result.isGranted;
-          _isCheckingPermission = false;
-        });
-
-        if (!result.isGranted && !result.isPermanentlyDenied) {
-          // Show dialog if user denied but didn't select "Don't Ask Again"
-          _showPermissionDeniedDialog();
-        } else if (result.isPermanentlyDenied) {
-          // Show dialog if user selected "Don't Ask Again"
-          _showPermissionDeniedDialog();
-        }
-      }
-    } else {
-      // Permission already granted
+    if (status.isGranted) {
+      // Ya tenemos permiso
       if (mounted) {
         setState(() {
           _hasCameraPermission = true;
           _isCheckingPermission = false;
         });
       }
+      return;
+    }
+
+    if (status.isDenied) {
+      // Permiso denegado pero podemos volver a pedir
+      print('Permiso denegado, solicitando...');
+      final result = await Permission.camera.request();
+      print('Resultado de la solicitud: $result');
+
+      if (mounted) {
+        setState(() {
+          _hasCameraPermission = result.isGranted;
+          _isCheckingPermission = false;
+        });
+
+        if (result.isGranted) {
+          print('✅ Permiso concedido');
+        } else if (result.isPermanentlyDenied) {
+          print('❌ Permiso permanentemente denegado');
+          _showPermissionDeniedDialog();
+        } else {
+          print('❌ Permiso denegado por el usuario');
+          _showPermissionDeniedDialog();
+        }
+      }
+      return;
+    }
+
+    if (status.isPermanentlyDenied) {
+      // El usuario seleccionó "No volver a preguntar" o está bloqueado
+      print('Permiso permanentemente denegado');
+      if (mounted) {
+        setState(() {
+          _hasCameraPermission = false;
+          _isCheckingPermission = false;
+        });
+        _showPermissionDeniedDialog();
+      }
+      return;
+    }
+
+    if (status.isRestricted) {
+      // Restringido por políticas del dispositivo (controles parentales, etc.)
+      print('Permiso restringido por el sistema');
+      if (mounted) {
+        setState(() {
+          _hasCameraPermission = false;
+          _isCheckingPermission = false;
+        });
+        _showRestrictedDialog();
+      }
+      return;
+    }
+
+    // Estado desconocido, intentar solicitar de todos modos
+    print('Estado desconocido del permiso, intentando solicitar...');
+    final result = await Permission.camera.request();
+    if (mounted) {
+      setState(() {
+        _hasCameraPermission = result.isGranted;
+        _isCheckingPermission = false;
+      });
+
+      if (!result.isGranted) {
+        _showPermissionDeniedDialog();
+      }
+    }
+  }
+
+  // Agregar también este método para casos de restricción
+  void _showRestrictedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Acceso a cámara restringido'),
+        content: const Text(
+          'El acceso a la cámara está restringido en este dispositivo. '
+          'Esto puede deberse a controles parentales u otras restricciones del sistema.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _recheckCameraPermission() async {
+    final status = await Permission.camera.status;
+    debugPrint('Rechecking camera permission: $status');
+
+    if (status.isGranted && !_hasCameraPermission) {
+      setState(() {
+        _hasCameraPermission = true;
+      });
+    } else if (!status.isGranted && _hasCameraPermission) {
+      setState(() {
+        _hasCameraPermission = false;
+      });
     }
   }
 
   void _showPermissionDeniedDialog() {
+    if (Platform.isIOS) {
+      _showCupertinoPermissionDialog();
+    } else {
+      _showMaterialPermissionDialog();
+    }
+  }
+
+  void _showCupertinoPermissionDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Permiso de cámara requerido'),
+        content: const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            'Para escanear códigos QR, necesitamos acceso a la cámara. Por favor, activa los permisos de cámara en Configuración.',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Cancelar'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Configuración'),
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialPermissionDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -104,8 +231,8 @@ class _QRScanScreenState extends State<QRScanScreen>
           ),
           TextButton(
             onPressed: () {
-              openAppSettings();
               Navigator.pop(context);
+              openAppSettings();
             },
             child: const Text('Abrir configuración'),
           ),
@@ -189,6 +316,46 @@ class _QRScanScreenState extends State<QRScanScreen>
   }
 
   void _showNotFoundDialog(String code) {
+    if (Platform.isIOS) {
+      _showCupertinoNotFoundDialog(code);
+    } else {
+      _showMaterialNotFoundDialog(code);
+    }
+  }
+
+  void _showCupertinoNotFoundDialog(String code) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('No encontrado'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text(
+            'No se encontró ninguna mariposa con el código:\n"$code"',
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Volver'),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Escanear otro'),
+            onPressed: () {
+              Navigator.pop(context);
+              _resetScanner();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialNotFoundDialog(String code) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -208,16 +375,16 @@ class _QRScanScreenState extends State<QRScanScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _resetScanner();
+              Navigator.pop(context);
             },
-            child: const Text('Escanear otro'),
+            child: const Text('Volver'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pop(context);
+              _resetScanner();
             },
-            child: const Text('Volver'),
+            child: const Text('Escanear otro'),
           ),
         ],
       ),
@@ -225,6 +392,44 @@ class _QRScanScreenState extends State<QRScanScreen>
   }
 
   void _showErrorDialog(String error) {
+    if (Platform.isIOS) {
+      _showCupertinoErrorDialog(error);
+    } else {
+      _showMaterialErrorDialog(error);
+    }
+  }
+
+  void _showCupertinoErrorDialog(String error) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Text('Ocurrió un error al buscar la mariposa:\n$error'),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Volver'),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: const Text('Reintentar'),
+            onPressed: () {
+              Navigator.pop(context);
+              _resetScanner();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMaterialErrorDialog(String error) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -242,16 +447,16 @@ class _QRScanScreenState extends State<QRScanScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              _resetScanner();
+              Navigator.pop(context);
             },
-            child: const Text('Reintentar'),
+            child: const Text('Volver'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.pop(context);
+              _resetScanner();
             },
-            child: const Text('Volver'),
+            child: const Text('Reintentar'),
           ),
         ],
       ),
@@ -272,6 +477,7 @@ class _QRScanScreenState extends State<QRScanScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scannerController.dispose();
     _animationController.dispose();
     super.dispose();
@@ -280,33 +486,89 @@ class _QRScanScreenState extends State<QRScanScreen>
   @override
   Widget build(BuildContext context) {
     if (_isCheckingPermission) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (!_hasCameraPermission) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Permiso requerido')),
+        backgroundColor: Colors.black,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+              if (Platform.isIOS)
+                const CupertinoActivityIndicator(
+                  color: Colors.white,
+                  radius: 20,
+                )
+              else
+                const CircularProgressIndicator(color: Colors.white),
               const SizedBox(height: 16),
               const Text(
-                'Se requiere permiso de cámara',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _checkCameraPermission,
-                child: const Text('Reintentar'),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: openAppSettings,
-                child: const Text('Abrir configuración'),
+                'Verificando permisos...',
+                style: TextStyle(color: Colors.white),
               ),
             ],
+          ),
+        ),
+      );
+    }
+
+    if (!_hasCameraPermission) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Permiso requerido',
+            style: TextStyle(color: Colors.white),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.camera_alt, size: 64, color: Colors.white54),
+                const SizedBox(height: 24),
+                const Text(
+                  'Se requiere permiso de cámara',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Para escanear códigos QR, necesitamos acceso a la cámara.',
+                  style: TextStyle(color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                if (Platform.isIOS) ...[
+                  CupertinoButton.filled(
+                    onPressed: _checkCameraPermission,
+                    child: const Text('Reintentar'),
+                  ),
+                  const SizedBox(height: 12),
+                  CupertinoButton(
+                    onPressed: openAppSettings,
+                    child: const Text('Abrir Configuración'),
+                  ),
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: _checkCameraPermission,
+                    child: const Text('Reintentar'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: openAppSettings,
+                    child: const Text('Abrir configuración'),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       );
@@ -474,13 +736,19 @@ class _QRScanScreenState extends State<QRScanScreen>
   Widget _buildLoadingOverlay() {
     return Container(
       color: Colors.black.withOpacity(0.7),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-            SizedBox(height: 16),
-            Text(
+            if (Platform.isIOS)
+              const CupertinoActivityIndicator(color: Colors.white, radius: 20)
+            else
+              const CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2,
+              ),
+            const SizedBox(height: 16),
+            const Text(
               'Buscando mariposa...',
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
