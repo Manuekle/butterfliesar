@@ -79,10 +79,13 @@ class _AnimatedButterflyViewState extends State<AnimatedButterflyView> {
           },
           child: _showAR
               ? ARExperienceScreen(
+                  key: ValueKey(
+                    'ar-view',
+                  ), // Añadimos una clave para ayudar a Flutter a diferenciar los widgets
                   butterfly: widget.butterfly,
-                  onSwitchToStatic: _arSupported ? _toggleMode : null,
                 )
               : ButterflyStaticScreen(
+                  key: ValueKey('static-view'),
                   butterfly: widget.butterfly,
                   canSwitchToAR: _arSupported,
                   onSwitchToAR: _arSupported ? _toggleMode : null,

@@ -1,47 +1,40 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart';
 import 'butterfly.dart';
 
-/// Carga todas las mariposas desde el directorio de assets
+/// Carga todas las mariposas desde el archivo JSON centralizado
 Future<List<Butterfly>> loadButterfliesFromAssets() async {
   try {
-    // Cargar el manifiesto de assets
-    final manifestContent = await rootBundle.loadString('AssetManifest.json');
-    final Map<String, dynamic> manifestMap = json.decode(manifestContent);
+    debugPrint('🦋 Cargando mariposas desde el archivo JSON...');
+    final String jsonString = await rootBundle.loadString(
+      'lib/data/butterflies.json',
+    );
+    final Map<String, dynamic> jsonData = json.decode(jsonString);
 
-    // Filtrar los archivos metadata.json
-    final metadataFiles = manifestMap.keys
-        .where(
-            (key) => key.contains('species/') && key.endsWith('metadata.json'))
-        .toList();
-
-    final butterflies = <Butterfly>[];
-
-    for (final metadataPath in metadataFiles) {
-      try {
-        final jsonStr = await rootBundle.loadString(metadataPath);
-        final data = json.decode(jsonStr);
-
-        // Obtener el directorio base del metadata.json
-        final dirPath = path.dirname(metadataPath);
-
-        butterflies.add(Butterfly(
-          id: path.basename(dirPath),
-          name: data['name']?.toString() ?? 'Unknown',
-          scientificName: data['scientificName']?.toString() ?? '',
-          imageAsset: data['imageAsset']?.toString() ?? '',
-          modelAsset: data['modelAsset']?.toString(),
-          ambientSound: data['ambientSound']?.toString(),
-        ));
-      } catch (e) {
-        print('Error loading butterfly from $metadataPath: $e');
-      }
+    if (jsonData['butterflies'] == null) {
+      debugPrint('❌ No se encontró la clave "butterflies" en el JSON');
+      return [];
     }
 
+    final List<dynamic> butterfliesJson = jsonData['butterflies'] as List;
+    final List<Butterfly> butterflies = butterfliesJson.map((json) {
+      return Butterfly(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? 'Nombre desconocido',
+        scientificName: json['scientificName'] as String? ?? '',
+        description: json['description'] as String? ?? '',
+        imageAsset: json['imageAsset'] as String? ?? '',
+        modelAsset: json['modelAsset'] as String?,
+        ambientSound: json['ambientSound'] as String?,
+      );
+    }).toList();
+
+    debugPrint('✅ Se cargaron ${butterflies.length} especies de mariposas');
     return butterflies;
-  } catch (e) {
-    print('Error loading butterflies: $e');
+  } catch (e, stackTrace) {
+    debugPrint('❌ Error al cargar las mariposas: $e');
+    debugPrint('Stack trace: $stackTrace');
     rethrow;
   }
 }
