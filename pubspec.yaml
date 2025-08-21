@@ -66,20 +66,8 @@ flutter:
     - assets/images/
     - assets/models/
     - assets/sounds/
-    - assets/fonts/
+    - assets/backgrounds/
     - lib/data/butterflies.json
-
-  fonts:
-    - family: Geist
-      fonts:
-        - asset: assets/fonts/Geist-Regular.ttf
-          weight: 400
-        - asset: assets/fonts/Geist-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Geist-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/Geist-Bold.ttf
-          weight: 700
 
   # To add assets to your application, add an assets section, like this:
   # assets:
