@@ -11,11 +11,13 @@ class PreparationScreen extends StatefulWidget {
 }
 
 class _PreparationScreenState extends State<PreparationScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
+  late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _pulseAnimation;
 
   Butterfly? selectedButterfly;
   bool _isInitialized = false;
@@ -28,6 +30,11 @@ class _PreparationScreenState extends State<PreparationScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
+
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
 
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
@@ -44,6 +51,10 @@ class _PreparationScreenState extends State<PreparationScreen>
 
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
   }
 
@@ -98,22 +109,17 @@ class _PreparationScreenState extends State<PreparationScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.white,
-      appBar: AppBar(
-        title: const Text('Preparando AR'),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Preparando AR'), centerTitle: true),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
@@ -121,53 +127,74 @@ class _PreparationScreenState extends State<PreparationScreen>
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Imagen de la mariposa (si está disponible)
-                if (selectedButterfly?.imageAsset.isNotEmpty == true)
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      margin: const EdgeInsets.only(bottom: 32),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                const Spacer(),
+
+                // Imagen de la mariposa
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                theme.colorScheme.primary.withOpacity(0.1),
+                                theme.colorScheme.primary.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withOpacity(0.2),
+                              width: 2,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          selectedButterfly!.imageAsset,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.1)
-                                  : Colors.black.withOpacity(0.05),
-                              child: Icon(
-                                Icons.flutter_dash_outlined,
-                                size: 60,
-                                color: isDark ? Colors.white54 : Colors.black54,
-                              ),
-                            );
-                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(22),
+                            child:
+                                selectedButterfly?.imageAsset.isNotEmpty == true
+                                ? Image.asset(
+                                    selectedButterfly!.imageAsset,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildPlaceholderIcon(theme);
+                                    },
+                                  )
+                                : _buildPlaceholderIcon(theme),
+                          ),
                         ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Indicador de carga con diseño personalizado
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ),
-
-                // Indicador de carga
-                const SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(strokeWidth: 3),
                 ),
 
                 const SizedBox(height: 32),
@@ -176,34 +203,80 @@ class _PreparationScreenState extends State<PreparationScreen>
                 Text(
                   selectedButterfly?.name ?? 'Preparando experiencia AR',
                   style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 8),
 
-                // Subtítulo
+                // Nombre científico
                 if (selectedButterfly?.scientificName.isNotEmpty == true)
                   Text(
                     selectedButterfly!.scientificName,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontStyle: FontStyle.italic,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
                   ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Instrucciones
-                Text(
-                  'Detectando superficie...\nColoca el dispositivo sobre una mesa o piso bien iluminado.',
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-                  textAlign: TextAlign.center,
+                // Instrucciones mejoradas
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.search_outlined,
+                              color: theme.colorScheme.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'Detectando superficie...',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Coloca el dispositivo sobre una mesa o piso bien iluminado para una mejor experiencia de realidad aumentada.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.left,
+                      ),
+                    ],
+                  ),
                 ),
 
-                const SizedBox(height: 40),
+                const Spacer(),
 
                 // Botón para continuar manualmente
                 ScaleTransition(
@@ -215,9 +288,9 @@ class _PreparationScreenState extends State<PreparationScreen>
                           ? _navigateToAR
                           : null,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Row(
@@ -225,25 +298,34 @@ class _PreparationScreenState extends State<PreparationScreen>
                         children: [
                           Text(
                             'Continuar',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: isDark ? Colors.black : Colors.white,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: isDark ? Colors.black : Colors.white,
-                          ),
+                          const SizedBox(width: 12),
+                          const Icon(Icons.arrow_forward, size: 20),
                         ],
                       ),
                     ),
                   ),
                 ),
+
+                SizedBox(height: size.height * 0.02),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderIcon(ThemeData theme) {
+    return Center(
+      child: Icon(
+        Icons.flutter_dash_outlined,
+        size: 60,
+        color: theme.colorScheme.primary,
       ),
     );
   }

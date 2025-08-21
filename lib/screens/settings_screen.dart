@@ -49,23 +49,21 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración'),
-        centerTitle: false,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Configuración'), centerTitle: false),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             children: [
               _buildThemeSection(context),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               _buildAboutSection(context),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               _buildSupportSection(context),
             ],
           ),
@@ -87,17 +85,19 @@ class _SettingsScreenState extends State<SettingsScreen>
               isSelected: themeProvider.themeMode == ThemeMode.system,
               onTap: () => themeProvider.setSystemTheme(),
             ),
+            _buildDivider(),
             _buildThemeOption(
               context: context,
               title: 'Tema claro',
-              subtitle: 'Fondo blanco con texto negro',
+              subtitle: 'Fondo claro con texto oscuro',
               isSelected: themeProvider.themeMode == ThemeMode.light,
               onTap: () => themeProvider.setLightTheme(),
             ),
+            _buildDivider(),
             _buildThemeOption(
               context: context,
               title: 'Tema oscuro',
-              subtitle: 'Fondo negro con texto blanco',
+              subtitle: 'Fondo oscuro con texto claro',
               isSelected: themeProvider.themeMode == ThemeMode.dark,
               onTap: () => themeProvider.setDarkTheme(),
             ),
@@ -109,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Widget _buildAboutSection(BuildContext context) {
     return _buildSection(
-      title: 'Acerca de',
+      title: 'Información',
       children: [
         _buildListTile(
           context: context,
@@ -118,19 +118,22 @@ class _SettingsScreenState extends State<SettingsScreen>
           subtitle: '1.0.0',
           onTap: () => _showVersionDialog(context),
         ),
+        _buildDivider(),
         _buildListTile(
           context: context,
-          icon: Icons.code,
+          icon: Icons.code_outlined,
           title: 'Código fuente',
-          subtitle: 'Ver en GitHub',
-          onTap: () => _showComingSoonDialog(context, 'Código fuente'),
+          subtitle: 'Ver repositorio en GitHub',
+          onTap: () => _showComingSoonSnackBar(context, 'Código fuente'),
         ),
+        _buildDivider(),
         _buildListTile(
           context: context,
           icon: Icons.privacy_tip_outlined,
           title: 'Política de privacidad',
           subtitle: 'Cómo manejamos tus datos',
-          onTap: () => _showComingSoonDialog(context, 'Política de privacidad'),
+          onTap: () =>
+              _showComingSoonSnackBar(context, 'Política de privacidad'),
         ),
       ],
     );
@@ -145,21 +148,23 @@ class _SettingsScreenState extends State<SettingsScreen>
           icon: Icons.help_outline,
           title: 'Centro de ayuda',
           subtitle: 'Preguntas frecuentes y guías',
-          onTap: () => _showComingSoonDialog(context, 'Centro de ayuda'),
+          onTap: () => _showComingSoonSnackBar(context, 'Centro de ayuda'),
         ),
+        _buildDivider(),
         _buildListTile(
           context: context,
           icon: Icons.bug_report_outlined,
           title: 'Reportar problema',
-          subtitle: 'Ayúdanos a mejorar la app',
-          onTap: () => _showComingSoonDialog(context, 'Reporte de problemas'),
+          subtitle: 'Ayúdanos a mejorar la aplicación',
+          onTap: () => _showComingSoonSnackBar(context, 'Reporte de problemas'),
         ),
+        _buildDivider(),
         _buildListTile(
           context: context,
           icon: Icons.star_outline,
-          title: 'Calificar app',
-          subtitle: 'Comparte tu experiencia',
-          onTap: () => _showComingSoonDialog(context, 'Calificación'),
+          title: 'Calificar aplicación',
+          subtitle: 'Comparte tu experiencia con otros',
+          onTap: () => _showComingSoonSnackBar(context, 'Calificación'),
         ),
       ],
     );
@@ -175,19 +180,23 @@ class _SettingsScreenState extends State<SettingsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
             title,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: theme.brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
+              color: theme.colorScheme.primary,
             ),
           ),
         ),
-        Card(
-          margin: EdgeInsets.zero,
+        Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+            ),
+          ),
           child: Column(children: children),
         ),
       ],
@@ -202,22 +211,47 @@ class _SettingsScreenState extends State<SettingsScreen>
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return InkWell(
       onTap: onTap,
-      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected
-                  ? (isDark ? Colors.white : Colors.black)
-                  : (isDark ? Colors.white54 : Colors.black54),
+            // Radio button personalizado
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurface.withOpacity(0.3),
+                  width: 2,
+                ),
+                color: isSelected
+                    ? theme.colorScheme.primary.withOpacity(0.1)
+                    : Colors.transparent,
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
+
             const SizedBox(width: 16),
+
+            // Contenido
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,14 +261,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: isSelected
                           ? FontWeight.w600
-                          : FontWeight.w400,
+                          : FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: isDark ? Colors.white54 : Colors.black54,
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                 ],
@@ -254,44 +288,69 @@ class _SettingsScreenState extends State<SettingsScreen>
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return InkWell(
       onTap: onTap,
-      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(20),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: isDark ? Colors.white70 : Colors.black54,
+            // Icono
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: theme.colorScheme.primary),
             ),
+
             const SizedBox(width: 16),
+
+            // Contenido
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: theme.textTheme.bodyLarge),
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: isDark ? Colors.white54 : Colors.black54,
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
                 ],
               ),
             ),
+
+            // Flecha
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: isDark ? Colors.white38 : Colors.black38,
+              color: theme.colorScheme.onSurface.withOpacity(0.4),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDivider() {
+    final theme = Theme.of(context);
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: theme.colorScheme.onSurface.withOpacity(0.1),
+      indent: 20,
+      endIndent: 20,
     );
   }
 
@@ -307,7 +366,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: const Text('MariposAR'),
+        title: const Text('ButterflyAR'),
         content: const Padding(
           padding: EdgeInsets.only(top: 8.0),
           child: Column(
@@ -323,7 +382,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
               SizedBox(height: 16),
               Text(
-                'Desarrollado con Flutter',
+                'Smurtfit Kappa • Desarrollado con Flutter',
                 style: TextStyle(
                   fontSize: 13,
                   color: CupertinoColors.secondaryLabel,
@@ -349,30 +408,46 @@ class _SettingsScreenState extends State<SettingsScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('MariposAR'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.flutter_dash_outlined,
+              color: theme.colorScheme.primary,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text('ButterflyAR'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Versión 1.0.0',
-              style: theme.textTheme.bodyLarge?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
-              'Una aplicación de realidad aumentada para explorar el mundo de las mariposas.',
+              'Una aplicación de realidad aumentada para explorar el fascinante mundo de las mariposas.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
-            Text(
-              'Desarrollado con Flutter',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white54
-                    : Colors.black54,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Smurtfit Kappa\nDesarrollado con Flutter',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -380,56 +455,22 @@ class _SettingsScreenState extends State<SettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cerrar',
-              style: TextStyle(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white
-                    : Colors.black,
-              ),
-            ),
+            child: const Text('Cerrar'),
           ),
         ],
       ),
     );
   }
 
-  void _showComingSoonDialog(BuildContext context, String feature) {
-    if (Platform.isIOS) {
-      _showCupertinoComingSoonDialog(context, feature);
-    } else {
-      _showMaterialComingSoonSnackBar(context, feature);
-    }
-  }
-
-  void _showCupertinoComingSoonDialog(BuildContext context, String feature) {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Próximamente'),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Text('$feature estará disponible en futuras actualizaciones.'),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            child: const Text('Entendido'),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showMaterialComingSoonSnackBar(BuildContext context, String feature) {
+  void _showComingSoonSnackBar(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$feature estará disponible pronto'),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 2),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
   }

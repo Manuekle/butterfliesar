@@ -1,9 +1,0 @@
-{
-  "id": "monarca",
-  "name": "Mariposa Monarca",
-  "scientificName": "Danaus plexippus",
-  "imageAsset": "assets/images/monarca.png",
-  "modelAsset": "assets/models/monarca.glb",
-  "ambientSound": "assets/sounds/monarca.mp3",
-  "description": "La mariposa monarca es famosa por su increíble migración anual de miles de kilómetros."
-}

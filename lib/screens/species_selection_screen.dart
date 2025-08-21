@@ -66,24 +66,22 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Especies'),
-        centerTitle: false,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Especies'), centerTitle: false),
       body: Consumer<ButterflyProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return _buildLoadingState();
+            return _buildLoadingState(theme);
           }
 
           if (provider.error != null) {
-            return _buildErrorState(provider.error!);
+            return _buildErrorState(provider.error!, theme);
           }
 
           if (provider.butterflies.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(theme);
           }
 
           final filteredButterflies = _filterButterflies(provider.butterflies);
@@ -94,11 +92,11 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
               position: _slideAnimation,
               child: Column(
                 children: [
-                  _buildSearchBar(),
+                  _buildSearchBar(theme),
                   Expanded(
                     child: filteredButterflies.isEmpty
-                        ? _buildNoResultsState()
-                        : _buildButterflyList(filteredButterflies),
+                        ? _buildNoResultsState(theme)
+                        : _buildButterflyList(filteredButterflies, theme),
                   ),
                 ],
               ),
@@ -109,16 +107,13 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
     );
   }
 
-  Widget _buildSearchBar() {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _buildSearchBar(ThemeData theme) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
       ),
       child: TextField(
         controller: _searchController,
@@ -129,16 +124,15 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
         },
         decoration: InputDecoration(
           hintText: 'Buscar especies...',
-          hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
           prefixIcon: Icon(
-            Icons.search,
-            color: isDark ? Colors.white54 : Colors.black54,
+            Icons.search_outlined,
+            color: theme.colorScheme.primary,
           ),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: isDark ? Colors.white54 : Colors.black54,
+                    color: theme.colorScheme.onSurface.withOpacity(0.6),
                   ),
                   onPressed: () {
                     _searchController.clear();
@@ -150,30 +144,27 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
               : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+            horizontal: 20,
+            vertical: 16,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildButterflyList(List<Butterfly> butterflies) {
+  Widget _buildButterflyList(List<Butterfly> butterflies, ThemeData theme) {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       itemCount: butterflies.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final butterfly = butterflies[index];
-        return _buildButterflyCard(butterfly, index);
+        return _buildButterflyCard(butterfly, index, theme);
       },
     );
   }
 
-  Widget _buildButterflyCard(Butterfly butterfly, int index) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _buildButterflyCard(Butterfly butterfly, int index, ThemeData theme) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + (index * 100)),
@@ -186,25 +177,35 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
       },
       child: InkWell(
         onTap: () => _navigateToPreparation(butterfly),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
               // Imagen de la mariposa
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.05),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
                   child: butterfly.imageAsset.isNotEmpty
                       ? Image.asset(
                           butterfly.imageAsset,
@@ -213,19 +214,19 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                             return Icon(
                               Icons.flutter_dash_outlined,
                               size: 40,
-                              color: isDark ? Colors.white54 : Colors.black54,
+                              color: theme.colorScheme.primary,
                             );
                           },
                         )
                       : Icon(
                           Icons.flutter_dash_outlined,
                           size: 40,
-                          color: isDark ? Colors.white54 : Colors.black54,
+                          color: theme.colorScheme.primary,
                         ),
                 ),
               ),
 
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
 
               // Información de la mariposa
               Expanded(
@@ -234,7 +235,7 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                   children: [
                     Text(
                       butterfly.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
@@ -245,7 +246,8 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                       butterfly.scientificName,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontStyle: FontStyle.italic,
-                        color: isDark ? Colors.white70 : Colors.black54,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -255,7 +257,8 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                       Text(
                         butterfly.description,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isDark ? Colors.white54 : Colors.black54,
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          height: 1.4,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -265,11 +268,21 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                 ),
               ),
 
-              // Icono de flecha
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: isDark ? Colors.white38 : Colors.black38,
+              const SizedBox(width: 12),
+
+              // Indicador de acción
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.arrow_forward,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ],
           ),
@@ -278,48 +291,64 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(ThemeData theme) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(strokeWidth: 2),
-          SizedBox(height: 16),
-          Text('Cargando especies...'),
+          CircularProgressIndicator(
+            strokeWidth: 3,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Cargando especies...',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(String error) {
-    final theme = Theme.of(context);
-
+  Widget _buildErrorState(String error, ThemeData theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
-            const SizedBox(height: 16),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.error_outline,
+                size: 40,
+                color: theme.colorScheme.error,
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
               'Error al cargar las especies',
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               error,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white70
-                    : Colors.black54,
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
                 context.read<ButterflyProvider>().loadButterflies();
@@ -332,37 +361,39 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
     );
   }
 
-  Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-
+  Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.flutter_dash_outlined,
-              size: 64,
-              color: theme.brightness == Brightness.dark
-                  ? Colors.white54
-                  : Colors.black54,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.flutter_dash_outlined,
+                size: 40,
+                color: theme.colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'No hay especies disponibles',
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               'Las especies se cargarán cuando estén disponibles.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white70
-                    : Colors.black54,
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -372,39 +403,51 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
     );
   }
 
-  Widget _buildNoResultsState() {
-    final theme = Theme.of(context);
-
+  Widget _buildNoResultsState(ThemeData theme) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: theme.brightness == Brightness.dark
-                  ? Colors.white54
-                  : Colors.black54,
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.search_off_outlined,
+                size: 40,
+                color: theme.colorScheme.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'Sin resultados',
-              style: theme.textTheme.titleLarge?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               'No se encontraron especies que coincidan con "$_searchQuery".',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white70
-                    : Colors.black54,
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton(
+              onPressed: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+              child: const Text('Limpiar búsqueda'),
             ),
           ],
         ),
