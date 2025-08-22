@@ -1,90 +1,103 @@
-# 🦋 Mariposario RA
+# 🦋 Butterflies AR
 
-Aplicación Flutter multiplataforma (Android & iOS) para explorar mariposas en Realidad Aumentada con un diseño minimalista y soporte para dark mode.
+Aplicación Flutter multiplataforma (Android, iOS, Web, Windows, macOS y Linux) para explorar mariposas en Realidad Aumentada con un diseño minimalista y soporte para dark mode.
 
----
+## 📱 Características
+
+- Visualización de mariposas en Realidad Aumentada
+- Soporte para múltiples plataformas
+- Interfaz intuitiva y fácil de usar
+- Modo oscuro
+- Integración con códigos QR
+- Catálogo de especies de mariposas
 
 ## 🚀 Instalación Rápida
 
 1. **Instala Flutter** ([Guía oficial](https://docs.flutter.dev/get-started/install))
-2. Clona el repositorio y entra a la carpeta:
+
+2. Clona el repositorio y accede al directorio:
 
    ```bash
-   git clone <URL_DE_TU_REPO>
-   cd mariposario_ra
+   git clone https://github.com/Manuekle/butterfliesar.git
+   cd butterfliesar
    ```
 
-3. Instala dependencias:
+3. Instala las dependencias:
 
    ```bash
    flutter pub get
    ```
 
----
-
-## ▶️ Cómo Correr la App
+## ▶️ Cómo Ejecutar la Aplicación
 
 ### Android
 
-- Conecta un dispositivo o abre un emulador.
-- Ejecuta:
+1. Conecta un dispositivo o inicia un emulador
+2. Ejecuta:
 
-  ```bash
-  flutter run -d android
-  ```
+   ```bash
+   flutter run -d android
+   ```
 
 ### iOS
 
-- Requiere Mac + Xcode + dispositivo físico o simulador.
-- Ejecuta:
+1. Requiere Mac con Xcode instalado
+2. Conecta un dispositivo iOS o inicia el simulador
+3. Ejecuta:
 
-  ```bash
-  flutter run -d ios
-  ```
+   ```bash
+   flutter run -d ios
+   ```
 
-- Si es la primera vez: abre el proyecto en Xcode, configura tu Team y acepta permisos.
-
----
-
-## 🧩 Paquetes Necesarios
-
-- `flutter` (SDK principal)
-- `provider` (gestión de estado y tema)
-- `ar_flutter_plugin` (Realidad Aumentada)  
-  **Para habilitar RA:**
-
-    1. En `pubspec.yaml`, descomenta la línea:
-
-       ```yaml
-       ar_flutter_plugin: ^0.7.3
-       ```
-
-    2. Ejecuta:
-
-       ```bash
-       flutter pub get
-       ```
+4. Si es la primera vez, configura tu cuenta de desarrollador en Xcode
 
 ---
 
-## 🦋 Cómo Importar Mariposas (Estructura Modular)
+## 🛠️ Dependencias Principales
 
-Desde ahora, **no necesitas modificar el código** para agregar nuevas especies. Solo sigue estos pasos usando el directorio `species/`:
+- `flutter` - SDK principal
+- `provider` - Gestión de estado y tema
+- `ar_flutter_plugin` - Integración con Realidad Aumentada
+- `qr_code_scanner` - Escaneo de códigos QR
+- `shared_preferences` - Almacenamiento local de preferencias
 
-### ¿Qué es `species/`?
+Todas las dependencias están configuradas en `pubspec.yaml`. Para actualizarlas:
 
-Es una carpeta donde cada subcarpeta representa una mariposa. Dentro de cada subcarpeta hay un archivo `metadata.json` con la información y rutas de assets de la especie.
+```bash
+flutter pub get
+```
 
-### Ejemplo visual
+## 🦋 Gestión de Especies
+
+La aplicación utiliza una estructura modular para gestionar las diferentes especies de mariposas. Cada especie se define en el directorio `assets/species/`.
+
+### Estructura de Archivos
 
 ```
-mariposario_ra/
-├── species/
-│   ├── monarca/
-│   │   └── metadata.json
-│   ├── morpho/
-│   │   └── metadata.json
-│   └── ...
+butterfliesar/
+├── assets/
+│   ├── species/
+│   │   ├── monarca/
+│   │   │   ├── metadata.json
+│   │   │   ├── model.glb
+│   │   │   └── preview.png
+│   │   └── ...
+```
+
+### metadata.json
+
+Cada especie debe tener un archivo `metadata.json` con la siguiente estructura:
+
+```json
+{
+  "name": "Nombre Común",
+  "scientificName": "Nombre Científico",
+  "description": "Descripción detallada de la especie...",
+  "habitat": "Descripción del hábitat...",
+  "conservationStatus": "Estado de conservación...",
+  "model": "species/nombre_especie/model.glb",
+  "previewImage": "species/nombre_especie/preview.png"
+}
 ```
 
 ### Ejemplo de `metadata.json`
@@ -135,53 +148,58 @@ Puedes asociar cada área del sendero a una especie usando códigos QR. Así, el
 
 - **Permisos:**
 
-    - iOS: Agrega a `ios/Runner/Info.plist`:
+  - iOS: Agrega a `ios/Runner/Info.plist`:
 
-      ```xml
-      <key>NSCameraUsageDescription</key>
-      <string>Necesitamos acceso a la cámara para mostrar RA</string>
-      ```
+    ```xml
+    <key>NSCameraUsageDescription</key>
+    <string>Necesitamos acceso a la cámara para mostrar RA</string>
+    ```
 
-    - Android: Agrega a `android/app/src/main/AndroidManifest.xml`:
+  - Android: Agrega a `android/app/src/main/AndroidManifest.xml`:
 
-      ```xml
-      <uses-permission android:name="android.permission.CAMERA"/>
-      ```
+    ```xml
+    <uses-permission android:name="android.permission.CAMERA"/>
+    ```
 
 - **Uso básico en código:**
 
-    - Usa el widget `ARView` de `ar_flutter_plugin` para mostrar el modelo 3D.
-    - Ejemplo mínimo en `ARExperienceScreen`:
+  - Usa el widget `ARView` de `ar_flutter_plugin` para mostrar el modelo 3D.
+  - Ejemplo mínimo en `ARExperienceScreen`:
 
-      ```dart
-      ARView(
-        onARViewCreated: (controller) {
-          controller.onAddNode(
-            ARNode(
-              type: NodeType.localGLTF2,
-              uri: "assets/models/mariposa_monarca.glb",
-              scale: Vector3(0.5, 0.5, 0.5),
-            ),
-          );
-        },
-      )
-      ```
+    ```dart
+    ARView(
+      onARViewCreated: (controller) {
+        controller.onAddNode(
+          ARNode(
+            type: NodeType.localGLTF2,
+            uri: "assets/models/mariposa_monarca.glb",
+            scale: Vector3(0.5, 0.5, 0.5),
+          ),
+        );
+      },
+    )
+    ```
 
 ---
 
-## 📁 Estructura Recomendada
+## 📁 Estructura del Proyecto
 
 ```
-mariposario_ra/
-├── lib/
-│   ├── screens/...
-│   ├── models/butterfly_example.dart
-│   └── ...
-├── assets/
-│   ├── images/monarca.png
-│   └── models/mariposa_monarca.glb
-│   └── sounds/ambiente_bosque.mp3
-├── pubspec.yaml
+butterfliesar/
+├── android/           # Configuración específica de Android
+├── ios/               # Configuración específica de iOS
+├── lib/               # Código fuente de la aplicación
+│   ├── models/        # Modelos de datos
+│   ├── screens/       # Pantallas de la aplicación
+│   ├── services/      # Servicios y lógica de negocio
+│   ├── utils/         # Utilidades y helpers
+│   ├── widgets/       # Widgets reutilizables
+│   └── main.dart      # Punto de entrada de la aplicación
+├── assets/            # Recursos estáticos
+│   ├── species/       # Modelos 3D y metadatos de especies
+│   └── images/        # Imágenes de la interfaz de usuario
+├── test/              # Pruebas unitarias y de widget
+└── pubspec.yaml       # Configuración de dependencias
 ```
 
 ---
@@ -189,9 +207,9 @@ mariposario_ra/
 ## ❓ Troubleshooting y Consejos
 
 - Si no ves el modelo en RA:
-    - Verifica permisos de cámara.
-    - El modelo `.glb` debe estar bien exportado y referenciado.
-    - Usa dispositivos compatibles con ARCore (Android) o ARKit (iOS).
+  - Verifica permisos de cámara.
+  - El modelo `.glb` debe estar bien exportado y referenciado.
+  - Usa dispositivos compatibles con ARCore (Android) o ARKit (iOS).
 - Para agregar más mariposas, repite el flujo de assets y modelo en el código.
 - Mantén los modelos optimizados para evitar caídas de rendimiento.
 
