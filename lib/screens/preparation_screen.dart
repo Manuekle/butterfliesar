@@ -278,40 +278,8 @@ class _PreparationScreenState extends State<PreparationScreen>
 
                 const Spacer(),
 
-                // Botón para continuar manualmente
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: selectedButterfly != null
-                          ? _navigateToAR
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Continuar',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.arrow_forward, size: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: size.height * 0.02),
+                // Se eliminó el botón de continuar ya que la navegación es automática
+                const SizedBox(height: 20),
               ],
             ),
           ),

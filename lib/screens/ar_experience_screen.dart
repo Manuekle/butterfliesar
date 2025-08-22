@@ -12,9 +12,9 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math64;
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 import 'package:butterfliesar/models/butterfly.dart';
-import 'package:butterfliesar/widgets/ar_controls.dart';
 
 class ARExperienceScreen extends StatefulWidget {
   final Butterfly butterfly;
@@ -28,10 +28,8 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
     with SingleTickerProviderStateMixin {
   AudioPlayer? _audioPlayer;
 
-  late AnimationController _controller;
-  late Animation<double> _fade;
+  late AnimationController _slideController;
   late Animation<Offset> _slide;
-  late Animation<double> _controlsFade;
 
   ARSessionManager? arSessionManager;
   ARObjectManager? arObjectManager;
@@ -59,20 +57,21 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+
+    _slideController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
-    _slide = Tween<Offset>(
-      begin: const Offset(0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-    _controlsFade = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.5, 1.0, curve: Curves.easeIn),
-    );
-    Timer(const Duration(milliseconds: 80), () => _controller.forward());
+
+    _slide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutQuart),
+        );
+
+    _slideController.forward();
+    _loadModel();
+    _startAutoAnimations();
+    _playAmbientSound();
   }
 
   @override
@@ -104,19 +103,12 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _stopAutoAnimations();
     _audioPlayer?.stop();
     _audioPlayer?.dispose();
     _rotationTimer?.cancel();
     _floatingTimer?.cancel();
-
-    // Eliminar nodo si existe
-    if (butterflyNode != null && arObjectManager != null) {
-      arObjectManager?.removeNode(butterflyNode!);
-    }
-
-    arObjectManager = null;
-    arSessionManager = null;
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -346,62 +338,92 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
       _showingInfo = true;
     });
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF1E2936) : Colors.white;
+    final textColor = isDark ? Colors.white : theme.colorScheme.onSurface;
+    final secondaryColor = isDark ? Colors.white70 : Colors.black54;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        height: MediaQuery.of(context).size.height * 0.6,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
+            ),
+          ],
         ),
         child: Column(
           children: [
             // Handle bar
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white24
+                      : const Color.fromARGB(66, 70, 20, 20),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-            // Contenido
+            // Content
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            selectedButterfly.imageAsset,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
+                        // Butterfly image
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: isDark ? Colors.white10 : Colors.grey[100],
+                            image: DecorationImage(
+                              image: AssetImage(selectedButterfly.imageAsset),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
+                        // Name and scientific name
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 selectedButterfly.name,
-                                style: Theme.of(context).textTheme.headlineSmall
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      color: textColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                               ),
+                              const SizedBox(height: 4),
                               Text(
                                 selectedButterfly.scientificName,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       fontStyle: FontStyle.italic,
-                                      color: Colors.grey[600],
+                                      color: secondaryColor,
                                     ),
                               ),
                             ],
@@ -409,44 +431,56 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
+                    const SizedBox(height: 24),
+                    // Description section
+                    Text(
                       'Descripción',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Esta hermosa mariposa es parte de la rica biodiversidad de nuestro ecosistema. Observa sus colores únicos y patrones distintivos mientras flota delicadamente en el aire.',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      selectedButterfly.description,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: secondaryColor,
+                        height: 1.5,
+                      ),
                     ),
-                    const SizedBox(height: 20),
-                    const Spacer(),
+                    const SizedBox(height: 24),
+                    // Info tip
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.info_outline, color: Colors.white),
-                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.touch_app_rounded,
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'Toca la mariposa para seleccionarla y usa gestos para moverla',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: textColor),
                             ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -493,41 +527,99 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return GestureDetector(
       onTap: _handleTap,
       onScaleStart: _handleScaleStart,
       onScaleUpdate: _handleScaleUpdate,
       child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.black.withOpacity(0.3),
-          elevation: 0,
-          title: Text(
-            'RA - ${selectedButterfly.name}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          actions: [
-            IconButton(
-              icon: Icon(
-                _isARMode ? Icons.image_outlined : Icons.camera_alt_outlined,
+        extendBodyBehindAppBar: false,
+        body: Stack(
+          children: [
+            // Main content
+            SafeArea(child: _isARMode ? _buildARView() : _buildStaticView()),
+            
+            // Navigation Controls
+            Positioned(
+              top: 16,
+              left: 8,
+              child: _buildFloatingButton(
+                icon: Icons.arrow_back,
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Atrás',
               ),
-              tooltip: _isARMode
-                  ? 'Ver fondo temático'
-                  : 'Ver en Realidad Aumentada',
-              onPressed: () {
-                setState(() {
-                  _isARMode = !_isARMode;
-                });
-                HapticFeedback.selectionClick();
-              },
             ),
+            Positioned(
+              top: 16,
+              right: 8,
+              child: _buildFloatingButton(
+                icon: _isARMode ? Icons.image_outlined : Icons.view_in_ar,
+                onPressed: () {
+                  setState(() {
+                    _isARMode = !_isARMode;
+                  });
+                  HapticFeedback.selectionClick();
+                },
+                tooltip: _isARMode ? 'Vista previa' : 'Vista AR',
+              ),
+            ),
+
+            // AR Controls - Floating action buttons
+            if (_isARMode)
+              Positioned(
+                bottom: 24,
+                right: 24,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Info Button
+                    _buildFloatingButton(
+                      icon: Icons.info_outline,
+                      onPressed: _showInfo,
+                      tooltip: 'Información',
+                    ),
+                    const SizedBox(height: 16),
+                    // Capture Button
+                    _buildFloatingButton(
+                      icon: Icons.camera_alt_outlined,
+                      onPressed: _captureScreen,
+                      tooltip: 'Tomar foto',
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
-        body: SafeArea(child: _isARMode ? _buildARView() : _buildStaticView()),
+      ),
+    );
+  }
+
+  Widget _buildFloatingButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: Colors.black87, size: 22),
+        ),
       ),
     );
   }
@@ -567,64 +659,83 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         // Instrucciones iniciales
         if (butterflyNode == null)
           Center(
-            child: FadeTransition(
-              opacity: _fade,
-              child: SlideTransition(
-                position: _slide,
-                child: Container(
-                  margin: const EdgeInsets.all(32),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(16),
+            child: SlideTransition(
+              position: _slide,
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surface.withOpacity(0.92),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.2),
+                    width: 1,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
                         Icons.camera_alt_outlined,
-                        size: 64,
+                        size: 40,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Busca una superficie plana',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Busca una superficie plana',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Mueve tu dispositivo lentamente para detectar el plano donde aparecerá la mariposa',
-                        style: TextStyle(color: Colors.white70),
-                        textAlign: TextAlign.center,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Mueve tu dispositivo lentamente para detectar el plano donde aparecerá la mariposa',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.8),
+                        height: 1.4,
                       ),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 4,
+                      width: 60,
+                      margin: const EdgeInsets.only(top: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-
-        // Controles AR
-        Positioned(
-          bottom: 32,
-          left: 0,
-          right: 0,
-          child: FadeTransition(
-            opacity: _controlsFade,
-            child: Center(
-              child: ARControls(
-                onInfo: _showInfo,
-                onGrab: _captureScreen,
-                onMenu: () => Navigator.pop(context),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -634,218 +745,80 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(
-            _isDayBackground 
-              ? 'assets/backgrounds/day.png' 
-              : 'assets/backgrounds/night.png',
+            _isDayBackground
+                ? 'assets/backgrounds/day.png'
+                : 'assets/backgrounds/night.png',
           ),
           fit: BoxFit.cover,
         ),
       ),
       child: Stack(
         children: [
-          // Elementos decorativos de fondo
-          Positioned(
-            top: -50,
-            right: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -30,
-            left: -30,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-            ),
+          // 3D Model Viewer
+          ModelViewer(
+            src: 'assets/models/test.glb',
+            alt: '3D model of a butterfly',
+            ar: false,
+            autoRotate: true,
+            cameraControls: true,
+            shadowIntensity: 1,
+            cameraOrbit: '0deg 75deg 105%',
+            fieldOfView: '30deg',
+            minCameraOrbit: 'auto auto 0%',
+            maxCameraOrbit: 'auto auto 200%',
+            minFieldOfView: '10deg',
+            maxFieldOfView: '45deg',
+            exposure: 0.8,
+            shadowSoftness: 0.5,
           ),
 
-          // Contenido principal
+          // 3D Model Controls
           Positioned(
-            top: 16,
-            right: 16,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isDayBackground = !_isDayBackground;
-                });
-                HapticFeedback.lightImpact();
-              },
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _isDayBackground ? Icons.wb_sunny : Icons.nights_stay,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _isDayBackground ? 'Día' : 'Noche',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                child: const Text(
+                  'Toca y arrastra para rotar • Pellizca para hacer zoom',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ),
           ),
-          Center(
+
+          // AR Mode Button with Day/Night Toggle
+          Positioned(
+            bottom: 24,
+            right: 24,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Imagen de la mariposa con efecto 3D
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 24,
-                        offset: const Offset(0, 12),
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.1),
-                        blurRadius: 6,
-                        offset: const Offset(0, -6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      selectedButterfly.imageAsset,
-                      width: 200,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                _buildFloatingButton(
+                  icon: Icons.info_outline,
+                  onPressed: _showInfo,
+                  tooltip: 'Información',
                 ),
-
-                const SizedBox(height: 32),
-
-                // Información de la mariposa
-                Text(
-                  selectedButterfly.name,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    shadows: [Shadow(blurRadius: 8, color: Colors.black54)],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  selectedButterfly.scientificName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    fontStyle: FontStyle.italic,
-                    shadows: [Shadow(blurRadius: 6, color: Colors.black38)],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 24),
-
-                // Indicadores de características
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      if (selectedButterfly.ambientSound != null) ...[
-                        const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.music_note,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Sonido ambiente activo',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.threed_rotation,
-                            color: Colors.white70,
-                            size: 20,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Modelo 3D disponible',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 16),
+                _buildFloatingButton(
+                  icon: _isDayBackground ? Icons.wb_sunny : Icons.nights_stay,
+                  onPressed: () {
+                    setState(() {
+                      _isDayBackground = !_isDayBackground;
+                    });
+                    HapticFeedback.lightImpact();
+                  },
+                  tooltip: _isDayBackground ? 'Modo día' : 'Modo noche',
                 ),
               ],
-            ),
-          ),
-
-          // Botón para cambiar a AR
-          Positioned(
-            bottom: 32,
-            right: 32,
-            child: FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  _isARMode = true;
-                });
-                HapticFeedback.selectionClick();
-              },
-              backgroundColor: Colors.white.withOpacity(0.9),
-              child: const Icon(
-                Icons.camera_alt_outlined,
-                color: Colors.black87,
-              ),
             ),
           ),
         ],
