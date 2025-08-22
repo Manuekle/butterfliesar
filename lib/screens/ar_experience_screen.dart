@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:io' show Platform;
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/node_types.dart';
