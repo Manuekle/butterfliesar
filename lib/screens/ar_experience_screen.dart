@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/node_types.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:ar_flutter_plugin/managers/ar_anchor_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
@@ -25,7 +27,7 @@ class ARExperienceScreen extends StatefulWidget {
 }
 
 class _ARExperienceScreenState extends State<ARExperienceScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   AudioPlayer? _audioPlayer;
 
   late AnimationController _slideController;
@@ -33,6 +35,9 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
 
   ARSessionManager? arSessionManager;
   ARObjectManager? arObjectManager;
+
+  bool _hasCameraPermission = false;
+  bool _hasARSupport = true; // Will be updated in initState
 
   ARNode? butterflyNode;
   Timer? _rotationTimer;
@@ -57,6 +62,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _slideController = AnimationController(
       vsync: this,
@@ -69,6 +75,8 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         );
 
     _slideController.forward();
+    _checkARSupport();
+    _checkCameraPermission();
     _loadModel();
     _startAutoAnimations();
     _playAmbientSound();
@@ -109,6 +117,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
     _rotationTimer?.cancel();
     _floatingTimer?.cancel();
     _slideController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -525,10 +534,46 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
     }
   }
 
+  // Check if device supports AR
+  Future<void> _checkARSupport() async {
+    try {
+      bool isSupported = false;
+      
+      // For mobile platforms, we'll assume AR is supported if the platform is Android or iOS
+      // and the AR plugin is available
+      if (Platform.isAndroid || Platform.isIOS) {
+        // On mobile, we'll assume AR is available if we can import the plugin
+        // A more robust check would require platform channels
+        isSupported = true;
+      }
+      
+      if (mounted) {
+        setState(() {
+          _hasARSupport = isSupported;
+          // If AR is not supported, force static view
+          if (!_hasARSupport) {
+            _isARMode = false;
+            debugPrint('AR is not supported on this device, using static view');
+          } else {
+            debugPrint('AR is supported on this device');
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking AR support: $e');
+      if (mounted) {
+        setState(() {
+          _hasARSupport = false;
+          _isARMode = false;
+          debugPrint('Error checking AR support, defaulting to static view');
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
+
     return GestureDetector(
       onTap: _handleTap,
       onScaleStart: _handleScaleStart,
@@ -538,8 +583,12 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         body: Stack(
           children: [
             // Main content
-            SafeArea(child: _isARMode ? _buildARView() : _buildStaticView()),
-            
+            SafeArea(
+              child: _hasARSupport && _isARMode 
+                  ? _buildARView() 
+                  : _buildStaticView(),
+            ),
+
             // Navigation Controls
             Positioned(
               top: 16,
@@ -550,23 +599,25 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                 tooltip: 'Atrás',
               ),
             ),
-            Positioned(
-              top: 16,
-              right: 8,
-              child: _buildFloatingButton(
-                icon: _isARMode ? Icons.image_outlined : Icons.view_in_ar,
-                onPressed: () {
-                  setState(() {
-                    _isARMode = !_isARMode;
-                  });
-                  HapticFeedback.selectionClick();
-                },
-                tooltip: _isARMode ? 'Vista previa' : 'Vista AR',
+            // Only show AR toggle if device supports AR
+            if (_hasARSupport)
+              Positioned(
+                top: 16,
+                right: 8,
+                child: _buildFloatingButton(
+                  icon: _isARMode ? Icons.image_outlined : Icons.view_in_ar,
+                  onPressed: () {
+                    setState(() {
+                      _isARMode = !_isARMode;
+                    });
+                    HapticFeedback.selectionClick();
+                  },
+                  tooltip: _isARMode ? 'Vista previa' : 'Vista AR',
+                ),
               ),
-            ),
 
             // AR Controls - Floating action buttons
-            if (_isARMode)
+            if (_hasARSupport && _isARMode)
               Positioned(
                 bottom: 24,
                 right: 24,
@@ -624,11 +675,103 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
     );
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _recheckCameraPermission();
+    }
+  }
+
+  Future<void> _checkCameraPermission() async {
+    final status = await Permission.camera.status;
+    setState(() {
+      _hasCameraPermission = status.isGranted;
+    });
+  }
+
+  Future<void> _recheckCameraPermission() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted != _hasCameraPermission) {
+      setState(() {
+        _hasCameraPermission = status.isGranted;
+      });
+    }
+  }
+
+  Widget _buildNoPermissionView() {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.camera_alt_outlined,
+              size: 48,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Permiso de cámara requerido',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'La aplicación necesita acceso a la cámara para mostrar la experiencia de realidad aumentada.',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () async {
+                final status = await Permission.camera.request();
+                if (status.isGranted) {
+                  setState(() {
+                    _hasCameraPermission = true;
+                  });
+                } else if (status.isPermanentlyDenied) {
+                  await openAppSettings();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text(
+                'Conceder permiso',
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildARView() {
     return Stack(
       children: [
         // Vista AR
-        ARView(onARViewCreated: onARViewCreated),
+        if (_hasCameraPermission)
+          ARView(onARViewCreated: onARViewCreated)
+        else
+          _buildNoPermissionView(),
 
         // Indicador de modelo seleccionado
         if (_isModelSelected)

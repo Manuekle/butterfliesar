@@ -14,7 +14,6 @@ class _PreparationScreenState extends State<PreparationScreen>
     with TickerProviderStateMixin {
   late AnimationController _animationController;
   late AnimationController _pulseController;
-  late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _pulseAnimation;
@@ -35,11 +34,6 @@ class _PreparationScreenState extends State<PreparationScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
 
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
@@ -120,168 +114,165 @@ class _PreparationScreenState extends State<PreparationScreen>
 
     return Scaffold(
       appBar: AppBar(title: const Text('Preparando AR'), centerTitle: true),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: SlideTransition(
-          position: _slideAnimation,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                const Spacer(),
+      body: SlideTransition(
+        position: _slideAnimation,
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              const Spacer(),
 
-                // Imagen de la mariposa
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _pulseAnimation.value,
-                        child: Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                theme.colorScheme.primary.withOpacity(0.1),
-                                theme.colorScheme.primary.withOpacity(0.05),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withOpacity(0.2),
-                              width: 2,
-                            ),
+              // Imagen de la mariposa
+              ScaleTransition(
+                scale: _scaleAnimation,
+                child: AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: Container(
+                        width: 140,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              theme.colorScheme.primary.withOpacity(0.1),
+                              theme.colorScheme.primary.withOpacity(0.05),
+                            ],
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(22),
-                            child:
-                                selectedButterfly?.imageAsset.isNotEmpty == true
-                                ? Image.asset(
-                                    selectedButterfly!.imageAsset,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildPlaceholderIcon(theme);
-                                    },
-                                  )
-                                : _buildPlaceholderIcon(theme),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withOpacity(0.2),
+                            width: 2,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 40),
-
-                // Indicador de carga con diseño personalizado
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        color: theme.colorScheme.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(22),
+                          child:
+                              selectedButterfly?.imageAsset.isNotEmpty == true
+                              ? Image.asset(
+                                  selectedButterfly!.imageAsset,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildPlaceholderIcon(theme);
+                                  },
+                                )
+                              : _buildPlaceholderIcon(theme),
+                        ),
                       ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Indicador de carga con diseño personalizado
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-                // Título principal
+              // Título principal
+              Text(
+                selectedButterfly?.name ?? 'Preparando experiencia AR',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 8),
+
+              // Nombre científico
+              if (selectedButterfly?.scientificName.isNotEmpty == true)
                 Text(
-                  selectedButterfly?.name ?? 'Preparando experiencia AR',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
+                  selectedButterfly!.scientificName,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 8),
+              const SizedBox(height: 32),
 
-                // Nombre científico
-                if (selectedButterfly?.scientificName.isNotEmpty == true)
-                  Text(
-                    selectedButterfly!.scientificName,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontStyle: FontStyle.italic,
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                const SizedBox(height: 32),
-
-                // Instrucciones mejoradas
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              Icons.search_outlined,
-                              color: theme.colorScheme.primary,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              'Detectando superficie...',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Coloca el dispositivo sobre una mesa o piso bien iluminado para una mejor experiencia de realidad aumentada.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.left,
-                      ),
-                    ],
+              // Instrucciones mejoradas
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
                   ),
                 ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.search_outlined,
+                            color: theme.colorScheme.primary,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            'Detectando superficie...',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Coloca el dispositivo sobre una mesa o piso bien iluminado para una mejor experiencia de realidad aumentada.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ],
+                ),
+              ),
 
-                const Spacer(),
+              const Spacer(),
 
-                // Se eliminó el botón de continuar ya que la navegación es automática
-                const SizedBox(height: 20),
-              ],
-            ),
+              // Se eliminó el botón de continuar ya que la navegación es automática
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),
