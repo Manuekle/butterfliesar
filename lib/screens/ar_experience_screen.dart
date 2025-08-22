@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:io' show Platform;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/node_types.dart';
@@ -15,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math64;
-import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 import 'package:butterfliesar/models/butterfly.dart';
 
@@ -142,7 +143,6 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   }
 
   void _showSelectionFeedback() {
-    final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
@@ -151,9 +151,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         ),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: theme.brightness == Brightness.dark
-            ? Colors.grey[800]
-            : Colors.black87,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
@@ -914,22 +912,34 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
       ),
       child: Stack(
         children: [
-          // 3D Model Viewer
-          ModelViewer(
-            src: 'assets/models/test.glb',
-            alt: '3D model of a butterfly',
-            ar: false,
-            autoRotate: true,
-            cameraControls: true,
-            shadowIntensity: 1,
-            cameraOrbit: '0deg 75deg 105%',
-            fieldOfView: '30deg',
-            minCameraOrbit: 'auto auto 0%',
-            maxCameraOrbit: 'auto auto 200%',
-            minFieldOfView: '10deg',
-            maxFieldOfView: '45deg',
-            exposure: 0.8,
-            shadowSoftness: 0.5,
+          // Mensaje informativo
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.phone_android, size: 64, color: Colors.white),
+                const SizedBox(height: 16),
+                const Text(
+                  'Vista previa 3D',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: Text(
+                    'Ejecuta la aplicación en un dispositivo móvil o en la web para ver el modelo 3D',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: 24),
+              ],
+            ),
           ),
 
           // 3D Model Controls
@@ -963,7 +973,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildFloatingButton(
-                  icon: Icons.info_outline,
+                  icon: LucideIcons.info,
                   onPressed: _showInfo,
                   tooltip: 'Información',
                 ),
