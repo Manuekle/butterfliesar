@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:butterfliesar/models/butterfly.dart';
 
 class ButterflyStaticScreen extends StatelessWidget {
@@ -20,11 +21,12 @@ class ButterflyStaticScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        automaticallyImplyLeading: false,
         foregroundColor: Colors.white,
         actions: [
           if (canSwitchToAR && onSwitchToAR != null)
             IconButton(
-              icon: const Icon(Icons.camera_outdoor),
+              icon: const Icon(LucideIcons.camera),
               tooltip: 'Ver en RA',
               onPressed: onSwitchToAR,
             ),
@@ -91,7 +93,7 @@ class ButterflyStaticScreen extends StatelessWidget {
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.music_note, color: Colors.white70),
+                      Icon(LucideIcons.music, color: Colors.white70),
                       SizedBox(width: 6),
                       Text(
                         'Sonido de ambiente disponible',

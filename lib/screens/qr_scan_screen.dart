@@ -27,21 +27,18 @@ class _QRScanScreenState extends State<QRScanScreen>
   bool _hasDetected = false;
   String? _lastScannedCode;
   bool _hasCameraPermission = false;
+  bool _hasCameraHardware = false;
   bool _isCheckingPermission = true;
   bool _isFlashOn = false;
   DateTime? _lastScanTime;
+  String? _cameraError;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _scannerController = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
-      facing: CameraFacing.back,
-      torchEnabled: false,
-    );
     _initAnimation();
-    _checkCameraPermission();
+    _checkCameraAvailability();
   }
 
   @override
@@ -67,6 +64,56 @@ class _QRScanScreenState extends State<QRScanScreen>
     );
   }
 
+  Future<void> _checkCameraAvailability() async {
+    try {
+      // Primero verificar permisos
+      await _checkCameraPermission();
+
+      if (_hasCameraPermission) {
+        // Luego verificar si hay cámara disponible
+        await _checkCameraHardware();
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _cameraError = error.toString();
+          _hasCameraHardware = false;
+          _isCheckingPermission = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _checkCameraHardware() async {
+    try {
+      // Intentar inicializar el controlador de escáner
+      _scannerController = MobileScannerController(
+        detectionSpeed: DetectionSpeed.noDuplicates,
+        facing: CameraFacing.back,
+        torchEnabled: false,
+      );
+
+      // Verificar si hay cámaras disponibles
+      await _scannerController.switchCamera();
+
+      if (mounted) {
+        setState(() {
+          _hasCameraHardware = true;
+          _isCheckingPermission = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _hasCameraHardware = false;
+          _cameraError = error.toString();
+          _isCheckingPermission = false;
+        });
+        _showNoCameraDialog();
+      }
+    }
+  }
+
   Future<void> _checkCameraPermission() async {
     PermissionStatus status = await Permission.camera.status;
 
@@ -74,7 +121,6 @@ class _QRScanScreenState extends State<QRScanScreen>
       if (mounted) {
         setState(() {
           _hasCameraPermission = true;
-          _isCheckingPermission = false;
         });
       }
       return;
@@ -85,10 +131,13 @@ class _QRScanScreenState extends State<QRScanScreen>
       if (mounted) {
         setState(() {
           _hasCameraPermission = result.isGranted;
-          _isCheckingPermission = false;
         });
         if (!result.isGranted) {
+          setState(() {
+            _isCheckingPermission = false;
+          });
           _showPermissionDeniedDialog();
+          return;
         }
       }
       return;
@@ -120,12 +169,111 @@ class _QRScanScreenState extends State<QRScanScreen>
     if (mounted) {
       setState(() {
         _hasCameraPermission = result.isGranted;
-        _isCheckingPermission = false;
       });
       if (!result.isGranted) {
+        setState(() {
+          _isCheckingPermission = false;
+        });
         _showPermissionDeniedDialog();
       }
     }
+  }
+
+  void _showNoCameraDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(
+              LucideIcons.cameraOff,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(width: 12),
+            const Text('Sin Cámara'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Este dispositivo no tiene una cámara disponible o no se pudo acceder a ella.',
+            ),
+            if (_cameraError != null) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Detalles técnicos:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _cameraError!,
+                  style: const TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          // Botón Entendido
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Text(
+              'Entendido',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+          // Botón Reintentar
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _checkCameraAvailability();
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: const Text(
+              'Reintentar',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showRestrictedDialog() {
@@ -146,12 +294,28 @@ class _QRScanScreenState extends State<QRScanScreen>
           'Esto puede deberse a controles parentales u otras restricciones del sistema.',
         ),
         actions: [
+          // Botón Entendido
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Entendido'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Text(
+              'Entendido',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
           ),
         ],
       ),
@@ -164,6 +328,7 @@ class _QRScanScreenState extends State<QRScanScreen>
       setState(() {
         _hasCameraPermission = true;
       });
+      await _checkCameraHardware();
     } else if (!status.isGranted && _hasCameraPermission) {
       setState(() {
         _hasCameraPermission = false;
@@ -231,19 +396,60 @@ class _QRScanScreenState extends State<QRScanScreen>
           'Ve a configuración para activar los permisos de la aplicación.',
         ),
         actions: [
+          // Botón Salir
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Salir'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Text(
+              'Salir',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
-          ElevatedButton(
+          // Botón Configuración
+          TextButton(
             onPressed: () {
               Navigator.pop(context);
               openAppSettings();
             },
-            child: const Text('Configuración'),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                width: 1,
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: const Text(
+              'Abrir Configuración',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -360,7 +566,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('No se encontró ninguna mariposa con el código:'),
+            const Text('No se encontró ninguna mariposa con el código:'),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(12),
@@ -379,19 +585,52 @@ class _QRScanScreenState extends State<QRScanScreen>
           ],
         ),
         actions: [
+          // Botón Salir
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Salir'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Text(
+              'Salir',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
-          ElevatedButton(
+          // Botón Escanear otro
+          TextButton(
             onPressed: () {
               Navigator.pop(context);
               _resetScanner();
             },
-            child: const Text('Escanear otro'),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: const Text(
+              'Escanear otro',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -413,19 +652,52 @@ class _QRScanScreenState extends State<QRScanScreen>
         ),
         content: Text('Ocurrió un error al buscar la mariposa:\n$error'),
         actions: [
+          // Botón Aceptar
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
             },
-            child: const Text('Salir'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: Text(
+              'Aceptar',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
-          ElevatedButton(
+          // Botón Reintentar
+          TextButton(
             onPressed: () {
               Navigator.pop(context);
               _resetScanner();
             },
-            child: const Text('Reintentar'),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              splashFactory: NoSplash.splashFactory,
+            ),
+            child: const Text(
+              'Reintentar',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),
@@ -451,7 +723,9 @@ class _QRScanScreenState extends State<QRScanScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _scannerController.dispose();
+    if (_hasCameraHardware) {
+      _scannerController.dispose();
+    }
     _animationController.dispose();
     super.dispose();
   }
@@ -464,6 +738,10 @@ class _QRScanScreenState extends State<QRScanScreen>
 
     if (!_hasCameraPermission) {
       return _buildNoPermissionScreen();
+    }
+
+    if (!_hasCameraHardware) {
+      return _buildNoCameraScreen();
     }
 
     return Scaffold(
@@ -522,7 +800,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                     ),
                   const SizedBox(height: 16),
                   const Text(
-                    'Verificando permisos...',
+                    'Verificando cámara...',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -544,11 +822,19 @@ class _QRScanScreenState extends State<QRScanScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Permiso Requerido',
-          style: TextStyle(color: Colors.white),
+        automaticallyImplyLeading: false,
+
+        leading: IconButton(
+          icon: const Icon(
+            LucideIcons.chevronLeft,
+            size: 22,
+            color: Colors.white,
+          ),
+          tooltip: 'Atrás',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Center(
         child: Padding(
@@ -559,7 +845,7 @@ class _QRScanScreenState extends State<QRScanScreen>
               Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Column(
@@ -567,7 +853,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                     Icon(
                       LucideIcons.camera,
                       size: 64,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -584,7 +870,171 @@ class _QRScanScreenState extends State<QRScanScreen>
                       'Para escanear códigos QR, necesitamos acceso a la cámara de tu dispositivo.',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    Column(
+                      children: [
+                        // Botón Reintentar
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _checkCameraAvailability,
+                            borderRadius: BorderRadius.circular(12),
+                            highlightColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 24,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    LucideIcons.refreshCw,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Reintentar',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Botón Configuración
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: openAppSettings,
+                            borderRadius: BorderRadius.circular(12),
+                            highlightColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            child: Ink(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 24,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    LucideIcons.settings,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Abrir Configuración',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoCameraScreen() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, size: 22),
+          tooltip: 'Atrás',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      LucideIcons.cameraOff,
+                      size: 64,
+                      color: Colors.red.withValues(alpha: 0.8),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Cámara No Disponible',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Este dispositivo no tiene una cámara disponible o no se pudo acceder a ella para escanear códigos QR.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -594,9 +1044,9 @@ class _QRScanScreenState extends State<QRScanScreen>
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: _checkCameraPermission,
+                            onPressed: _checkCameraAvailability,
                             icon: const Icon(LucideIcons.refreshCw),
-                            label: const Text('Reintentar'),
+                            label: const Text('Verificar Nuevamente'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
@@ -609,9 +1059,9 @@ class _QRScanScreenState extends State<QRScanScreen>
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: openAppSettings,
-                            icon: const Icon(LucideIcons.settings),
-                            label: const Text('Abrir Configuración'),
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(LucideIcons.arrowLeft),
+                            label: const Text('Volver'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Colors.white),
@@ -636,13 +1086,18 @@ class _QRScanScreenState extends State<QRScanScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.black.withOpacity(0.3),
+      backgroundColor: Colors.black.withValues(alpha: 0.3),
       elevation: 0,
-      title: const Text(
-        'Escanear QR',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      automaticallyImplyLeading: false,
+
+      leading: IconButton(
+        icon: const Icon(LucideIcons.chevronLeft, size: 22),
+        tooltip: 'Atrás',
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        onPressed: () => Navigator.of(context).pop(),
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
+
       actions: [
         IconButton(
           onPressed: _toggleFlash,
@@ -650,7 +1105,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           tooltip: _isFlashOn ? 'Apagar flash' : 'Encender flash',
           style: IconButton.styleFrom(
             backgroundColor: _isFlashOn
-                ? Colors.white.withOpacity(0.2)
+                ? Colors.white.withValues(alpha: 0.2)
                 : Colors.transparent,
           ),
         ),
@@ -678,7 +1133,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(24),
@@ -790,7 +1245,10 @@ class _QRScanScreenState extends State<QRScanScreen>
                 stops: const [0.0, 0.2, 0.8, 1.0],
               ),
               boxShadow: [
-                BoxShadow(color: Colors.white.withOpacity(0.5), blurRadius: 4),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  blurRadius: 4,
+                ),
               ],
             ),
           ),
@@ -807,9 +1265,12 @@ class _QRScanScreenState extends State<QRScanScreen>
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
+          color: Colors.black.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -837,7 +1298,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                   ? 'Asegúrate de tener buena iluminación'
                   : 'Por favor espera...',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 14,
               ),
               textAlign: TextAlign.center,
@@ -857,7 +1318,7 @@ class _QRScanScreenState extends State<QRScanScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -883,12 +1344,12 @@ class _QRScanScreenState extends State<QRScanScreen>
 
   Widget _buildLoadingOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.8),
+      color: Colors.black.withValues(alpha: 0.8),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -917,7 +1378,7 @@ class _QRScanScreenState extends State<QRScanScreen>
               Text(
                 'Por favor espera',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 14,
                 ),
               ),

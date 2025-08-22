@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:butterfliesar/models/butterfly.dart';
 import 'package:butterfliesar/providers/butterfly_provider.dart';
@@ -113,7 +114,16 @@ class _PreparationScreenState extends State<PreparationScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Preparando AR'), centerTitle: true),
+      appBar: AppBar(
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, size: 20),
+          tooltip: 'Atrás',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: SlideTransition(
         position: _slideAnimation,
         child: Padding(
@@ -239,7 +249,7 @@ class _PreparationScreenState extends State<PreparationScreen>
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
-                            Icons.search_outlined,
+                            LucideIcons.search,
                             color: theme.colorScheme.primary,
                             size: 20,
                           ),
@@ -281,11 +291,7 @@ class _PreparationScreenState extends State<PreparationScreen>
 
   Widget _buildPlaceholderIcon(ThemeData theme) {
     return Center(
-      child: Icon(
-        Icons.flutter_dash_outlined,
-        size: 60,
-        color: theme.colorScheme.primary,
-      ),
+      child: Icon(LucideIcons.info, size: 60, color: theme.colorScheme.primary),
     );
   }
 }

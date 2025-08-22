@@ -115,9 +115,6 @@ class _HubScreenState extends State<HubScreen>
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.2),
-            ),
           ),
           child: GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/settings'),
@@ -126,6 +123,7 @@ class _HubScreenState extends State<HubScreen>
               child: Icon(
                 LucideIcons.settings,
                 color: theme.colorScheme.onSurface,
+                size: 20,
               ),
             ),
           ),
@@ -151,8 +149,9 @@ class _HubScreenState extends State<HubScreen>
           'Descubre especies únicas con realidad aumentada y aprende sobre su fascinante mundo natural.',
           style: theme.textTheme.bodyLarge?.copyWith(
             height: 1.6,
-            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.9),
+            color: theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.9),
             letterSpacing: 0.2,
+            fontSize: 14,
           ),
         ),
       ],
@@ -216,13 +215,13 @@ class _HubScreenState extends State<HubScreen>
               end: Alignment.bottomRight,
               colors: [
                 theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
+                theme.colorScheme.primary.withValues(alpha: 0.8),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withOpacity(0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -235,7 +234,7 @@ class _HubScreenState extends State<HubScreen>
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(icon, size: 32, color: Colors.white),
@@ -259,7 +258,7 @@ class _HubScreenState extends State<HubScreen>
               Text(
                 subtitle,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -294,8 +293,8 @@ class _HubScreenState extends State<HubScreen>
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.2),
-              width: 2,
+              color: theme.colorScheme.primary.withValues(alpha: 0.2),
+              width: 1,
             ),
           ),
           child: Row(
@@ -305,7 +304,7 @@ class _HubScreenState extends State<HubScreen>
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(icon, size: 28, color: theme.colorScheme.primary),
@@ -337,7 +336,7 @@ class _HubScreenState extends State<HubScreen>
               Icon(
                 LucideIcons.chevronRight,
                 size: 18,
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ],
           ),

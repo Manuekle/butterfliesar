@@ -70,7 +70,16 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Especies'), centerTitle: false),
+      appBar: AppBar(
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, size: 22),
+          splashColor: Colors.transparent,
+          tooltip: 'Atrás',
+          highlightColor: Colors.transparent,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Consumer<ButterflyProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
@@ -129,20 +138,23 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
             _searchQuery = value;
           });
         },
-        style: theme.textTheme.bodyLarge?.copyWith(
-          letterSpacing: 0.2,
-        ),
+        style: theme.textTheme.bodyLarge?.copyWith(letterSpacing: 0.2),
         decoration: InputDecoration(
           hintText: 'Buscar especie...',
           hintStyle: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.5),
+            color: theme.textTheme.bodyLarge?.color?.withValues(alpha: 0.5),
+            fontSize: 14,
           ),
           prefixIcon: Icon(
             LucideIcons.search,
             color: theme.colorScheme.primary,
+            size: 20,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -208,14 +220,16 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Icon(
-                              LucideIcons.bug, // Using bug as a temporary replacement for butterfly
+                              LucideIcons
+                                  .bug, // Using bug as a temporary replacement for butterfly
                               size: 40,
                               color: theme.colorScheme.primary,
                             );
                           },
                         )
                       : Icon(
-                          LucideIcons.bug, // Using bug as a temporary replacement for butterfly_2
+                          LucideIcons
+                              .bug, // Using bug as a temporary replacement for butterfly_2
                           size: 40,
                           color: theme.colorScheme.primary,
                         ),
@@ -278,7 +292,7 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  LucideIcons.arrowRight,
+                  LucideIcons.chevronRight,
                   size: 18,
                   color: theme.colorScheme.primary,
                 ),
@@ -326,7 +340,7 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                Icons.error_outline,
+                LucideIcons.info,
                 size: 40,
                 color: theme.colorScheme.error,
               ),
@@ -367,10 +381,7 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 80,
-                color: theme.colorScheme.primary,
-            ),
+            Container(width: 80, color: theme.colorScheme.primary),
             const SizedBox(height: 20),
             Text(
               'Cargando especies...',
@@ -408,7 +419,7 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                Icons.search_off_outlined,
+                LucideIcons.search,
                 size: 40,
                 color: theme.colorScheme.primary,
               ),
@@ -440,7 +451,10 @@ class _SpeciesSelectionScreenState extends State<SpeciesSelectionScreen>
               style: FilledButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

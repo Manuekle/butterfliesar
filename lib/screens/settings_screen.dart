@@ -50,10 +50,17 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Configuración'), centerTitle: false),
+      appBar: AppBar(
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, size: 22),
+          tooltip: 'Atrás',
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: SlideTransition(
@@ -118,14 +125,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           title: 'Versión',
           subtitle: '1.0.0',
           onTap: () => _showVersionDialog(context),
-        ),
-        _buildDivider(),
-        _buildListTile(
-          context: context,
-          icon: LucideIcons.code,
-          title: 'Código fuente',
-          subtitle: 'Ver repositorio en GitHub',
-          onTap: () => _showComingSoonSnackBar(context, 'Código fuente'),
         ),
         _buildDivider(),
         _buildListTile(
@@ -466,7 +465,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   void _showComingSoonSnackBar(BuildContext context, String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$feature estará disponible pronto'),
+        content: Text(
+          '$feature estará disponible pronto',
+          style: const TextStyle(color: Colors.white),
+        ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),

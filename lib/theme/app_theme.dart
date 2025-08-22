@@ -27,92 +27,92 @@ class AppTheme {
     ),
 
     // Tipografía con Inter
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: GoogleFonts.inter(
+    textTheme: GoogleFonts.workSansTextTheme().copyWith(
+      displayLarge: GoogleFonts.workSans(
         fontSize: 57,
         fontWeight: FontWeight.w400,
         color: secondaryDark,
         height: 1.12,
       ),
-      displayMedium: GoogleFonts.inter(
+      displayMedium: GoogleFonts.workSans(
         fontSize: 45,
         fontWeight: FontWeight.w400,
         color: secondaryDark,
         height: 1.16,
       ),
-      displaySmall: GoogleFonts.inter(
+      displaySmall: GoogleFonts.workSans(
         fontSize: 36,
         fontWeight: FontWeight.w400,
         color: secondaryDark,
         height: 1.22,
       ),
-      headlineLarge: GoogleFonts.inter(
+      headlineLarge: GoogleFonts.workSans(
         fontSize: 32,
         fontWeight: FontWeight.w600,
         color: secondaryDark,
         height: 1.25,
       ),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.workSans(
         fontSize: 28,
         fontWeight: FontWeight.w600,
         color: secondaryDark,
         height: 1.29,
       ),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.workSans(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: secondaryDark,
         height: 1.33,
       ),
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.workSans(
         fontSize: 22,
         fontWeight: FontWeight.w500,
         color: secondaryDark,
         height: 1.27,
       ),
-      titleMedium: GoogleFonts.inter(
+      titleMedium: GoogleFonts.workSans(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: secondaryDark,
         height: 1.50,
       ),
-      titleSmall: GoogleFonts.inter(
+      titleSmall: GoogleFonts.workSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: secondaryDark,
         height: 1.43,
       ),
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: GoogleFonts.workSans(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: secondaryDark,
         height: 1.50,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.workSans(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: secondaryDark.withOpacity(0.8),
         height: 1.43,
       ),
-      bodySmall: GoogleFonts.inter(
+      bodySmall: GoogleFonts.workSans(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: secondaryDark.withOpacity(0.6),
         height: 1.33,
       ),
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.workSans(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Colors.white,
         height: 1.43,
       ),
-      labelMedium: GoogleFonts.inter(
+      labelMedium: GoogleFonts.workSans(
         fontSize: 12,
         fontWeight: FontWeight.w500,
         color: Colors.white,
         height: 1.33,
       ),
-      labelSmall: GoogleFonts.inter(
+      labelSmall: GoogleFonts.workSans(
         fontSize: 11,
         fontWeight: FontWeight.w500,
         color: Colors.white,
@@ -126,7 +126,7 @@ class AppTheme {
       foregroundColor: secondaryDark,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.workSans(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: secondaryDark,
@@ -142,7 +142,10 @@ class AppTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
 
@@ -152,7 +155,10 @@ class AppTheme {
         side: const BorderSide(color: secondaryDark, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
 
@@ -161,7 +167,10 @@ class AppTheme {
         foregroundColor: primaryBlue,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     ),
 
@@ -191,7 +200,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primaryBlue, width: 2),
       ),
-      hintStyle: GoogleFonts.inter(
+      hintStyle: GoogleFonts.workSans(
         color: secondaryDark.withOpacity(0.5),
         fontSize: 16,
       ),
@@ -217,98 +226,99 @@ class AppTheme {
     ),
 
     // Tipografía con Inter
-    textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-      displayLarge: GoogleFonts.inter(
-        fontSize: 57,
-        fontWeight: FontWeight.w400,
-        color: Colors.white,
-        height: 1.12,
-      ),
-      displayMedium: GoogleFonts.inter(
-        fontSize: 45,
-        fontWeight: FontWeight.w400,
-        color: Colors.white,
-        height: 1.16,
-      ),
-      displaySmall: GoogleFonts.inter(
-        fontSize: 36,
-        fontWeight: FontWeight.w400,
-        color: Colors.white,
-        height: 1.22,
-      ),
-      headlineLarge: GoogleFonts.inter(
-        fontSize: 32,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-        height: 1.25,
-      ),
-      headlineMedium: GoogleFonts.inter(
-        fontSize: 28,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-        height: 1.29,
-      ),
-      headlineSmall: GoogleFonts.inter(
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-        height: 1.33,
-      ),
-      titleLarge: GoogleFonts.inter(
-        fontSize: 22,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.27,
-      ),
-      titleMedium: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.50,
-      ),
-      titleSmall: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.43,
-      ),
-      bodyLarge: GoogleFonts.inter(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: Colors.white,
-        height: 1.50,
-      ),
-      bodyMedium: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-        color: Colors.white.withOpacity(0.8),
-        height: 1.43,
-      ),
-      bodySmall: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: Colors.white.withOpacity(0.6),
-        height: 1.33,
-      ),
-      labelLarge: GoogleFonts.inter(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.43,
-      ),
-      labelMedium: GoogleFonts.inter(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.33,
-      ),
-      labelSmall: GoogleFonts.inter(
-        fontSize: 11,
-        fontWeight: FontWeight.w500,
-        color: Colors.white,
-        height: 1.45,
-      ),
-    ),
+    textTheme: GoogleFonts.workSansTextTheme(ThemeData.dark().textTheme)
+        .copyWith(
+          displayLarge: GoogleFonts.workSans(
+            fontSize: 57,
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+            height: 1.12,
+          ),
+          displayMedium: GoogleFonts.workSans(
+            fontSize: 45,
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+            height: 1.16,
+          ),
+          displaySmall: GoogleFonts.workSans(
+            fontSize: 36,
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+            height: 1.22,
+          ),
+          headlineLarge: GoogleFonts.workSans(
+            fontSize: 32,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            height: 1.25,
+          ),
+          headlineMedium: GoogleFonts.workSans(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            height: 1.29,
+          ),
+          headlineSmall: GoogleFonts.workSans(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            height: 1.33,
+          ),
+          titleLarge: GoogleFonts.workSans(
+            fontSize: 22,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.27,
+          ),
+          titleMedium: GoogleFonts.workSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.50,
+          ),
+          titleSmall: GoogleFonts.workSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.43,
+          ),
+          bodyLarge: GoogleFonts.workSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+            height: 1.50,
+          ),
+          bodyMedium: GoogleFonts.workSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withOpacity(0.8),
+            height: 1.43,
+          ),
+          bodySmall: GoogleFonts.workSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withOpacity(0.6),
+            height: 1.33,
+          ),
+          labelLarge: GoogleFonts.workSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.43,
+          ),
+          labelMedium: GoogleFonts.workSans(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.33,
+          ),
+          labelSmall: GoogleFonts.workSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+            height: 1.45,
+          ),
+        ),
 
     // AppBar
     appBarTheme: AppBarTheme(
@@ -316,7 +326,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
-      titleTextStyle: GoogleFonts.inter(
+      titleTextStyle: GoogleFonts.workSans(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Colors.white,
@@ -332,7 +342,10 @@ class AppTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
 
@@ -342,7 +355,10 @@ class AppTheme {
         side: const BorderSide(color: Colors.white, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
 
@@ -351,7 +367,10 @@ class AppTheme {
         foregroundColor: primaryBlue,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        textStyle: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w500),
+        textStyle: GoogleFonts.workSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     ),
 
@@ -381,7 +400,7 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primaryBlue, width: 2),
       ),
-      hintStyle: GoogleFonts.inter(
+      hintStyle: GoogleFonts.workSans(
         color: Colors.white.withOpacity(0.5),
         fontSize: 16,
       ),

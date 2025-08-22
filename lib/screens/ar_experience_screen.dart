@@ -142,14 +142,19 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   }
 
   void _showSelectionFeedback() {
+    final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text(
           'Mariposa seleccionada - Usa gestos para mover y escalar',
+          style: TextStyle(color: Colors.white),
         ),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.black87,
+        backgroundColor: theme.brightness == Brightness.dark
+            ? Colors.grey[800]
+            : Colors.black87,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -539,7 +544,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   Future<void> _checkARSupport() async {
     try {
       bool isSupported = false;
-      
+
       // For mobile platforms, we'll assume AR is supported if the platform is Android or iOS
       // and the AR plugin is available
       if (Platform.isAndroid || Platform.isIOS) {
@@ -547,7 +552,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         // A more robust check would require platform channels
         isSupported = true;
       }
-      
+
       if (mounted) {
         setState(() {
           _hasARSupport = isSupported;
@@ -574,7 +579,6 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: _handleTap,
       onScaleStart: _handleScaleStart,
@@ -585,8 +589,8 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
           children: [
             // Main content
             SafeArea(
-              child: _hasARSupport && _isARMode 
-                  ? _buildARView() 
+              child: _hasARSupport && _isARMode
+                  ? _buildARView()
                   : _buildStaticView(),
             ),
 
@@ -594,8 +598,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
             Positioned(
               top: 16,
               left: 8,
-              child: _buildFloatingButton(
-                icon: LucideIcons.arrowLeft,
+              child: _buildBackButton(
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Atrás',
               ),
@@ -647,6 +650,23 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
     );
   }
 
+  Widget _buildBackButton({
+    required VoidCallback onPressed,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: IconButton(
+        icon: const Icon(
+          LucideIcons.chevronLeft,
+          size: 22,
+          color: Colors.white,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
   Widget _buildFloatingButton({
     required IconData icon,
     required VoidCallback onPressed,
@@ -661,7 +681,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
           height: 44,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.9),
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -711,11 +731,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.camera_alt_outlined,
-              size: 48,
-              color: Colors.white,
-            ),
+            const Icon(LucideIcons.camera, size: 48, color: Colors.white),
             const SizedBox(height: 20),
             const Text(
               'Permiso de cámara requerido',
@@ -932,7 +948,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
-                  'Toca y arrastra para rotar • Pellizca para hacer zoom',
+                  'Pellizca para hacer zoom',
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
