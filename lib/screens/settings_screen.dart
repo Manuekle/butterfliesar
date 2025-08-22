@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
@@ -113,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       children: [
         _buildListTile(
           context: context,
-          icon: Icons.info_outline,
+          icon: LucideIcons.info,
           title: 'Versión',
           subtitle: '1.0.0',
           onTap: () => _showVersionDialog(context),
@@ -121,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDivider(),
         _buildListTile(
           context: context,
-          icon: Icons.code_outlined,
+          icon: LucideIcons.code,
           title: 'Código fuente',
           subtitle: 'Ver repositorio en GitHub',
           onTap: () => _showComingSoonSnackBar(context, 'Código fuente'),
@@ -129,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDivider(),
         _buildListTile(
           context: context,
-          icon: Icons.privacy_tip_outlined,
+          icon: LucideIcons.shield,
           title: 'Política de privacidad',
           subtitle: 'Cómo manejamos tus datos',
           onTap: () =>
@@ -145,7 +146,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       children: [
         _buildListTile(
           context: context,
-          icon: Icons.help_outline,
+          icon: LucideIcons.info, // Using help as a valid icon
           title: 'Centro de ayuda',
           subtitle: 'Preguntas frecuentes y guías',
           onTap: () => _showComingSoonSnackBar(context, 'Centro de ayuda'),
@@ -153,7 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDivider(),
         _buildListTile(
           context: context,
-          icon: Icons.bug_report_outlined,
+          icon: LucideIcons.bug,
           title: 'Reportar problema',
           subtitle: 'Ayúdanos a mejorar la aplicación',
           onTap: () => _showComingSoonSnackBar(context, 'Reporte de problemas'),
@@ -161,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildDivider(),
         _buildListTile(
           context: context,
-          icon: Icons.star_outline,
+          icon: LucideIcons.star,
           title: 'Calificar aplicación',
           subtitle: 'Comparte tu experiencia con otros',
           onTap: () => _showComingSoonSnackBar(context, 'Calificación'),
@@ -333,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
             // Flecha
             Icon(
-              Icons.arrow_forward_ios,
+              LucideIcons.chevronRight,
               size: 16,
               color: theme.colorScheme.onSurface.withOpacity(0.4),
             ),
@@ -412,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         title: Row(
           children: [
             Icon(
-              Icons.flutter_dash_outlined,
+              LucideIcons.code, // Using code as an alternative to flutter icon
               color: theme.colorScheme.primary,
               size: 28,
             ),

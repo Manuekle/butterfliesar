@@ -12,6 +12,7 @@ import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin/models/ar_node.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart' as vector_math64;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
@@ -474,7 +475,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
-                            Icons.touch_app_rounded,
+                            LucideIcons.hand,
                             color: theme.colorScheme.primary,
                             size: 20,
                           ),
@@ -513,7 +514,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
         const SnackBar(
           content: Row(
             children: [
-              Icon(Icons.camera_alt, color: Colors.white),
+              Icon(LucideIcons.camera, color: Colors.white),
               SizedBox(width: 8),
               Text('¡Captura simulada! Función en desarrollo'),
             ],
@@ -594,7 +595,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
               top: 16,
               left: 8,
               child: _buildFloatingButton(
-                icon: Icons.arrow_back,
+                icon: LucideIcons.arrowLeft,
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'Atrás',
               ),
@@ -605,7 +606,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                 top: 16,
                 right: 8,
                 child: _buildFloatingButton(
-                  icon: _isARMode ? Icons.image_outlined : Icons.view_in_ar,
+                  icon: _isARMode ? LucideIcons.image : LucideIcons.box,
                   onPressed: () {
                     setState(() {
                       _isARMode = !_isARMode;
@@ -626,14 +627,14 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                   children: [
                     // Info Button
                     _buildFloatingButton(
-                      icon: Icons.info_outline,
+                      icon: LucideIcons.info,
                       onPressed: _showInfo,
                       tooltip: 'Información',
                     ),
                     const SizedBox(height: 16),
                     // Capture Button
                     _buildFloatingButton(
-                      icon: Icons.camera_alt_outlined,
+                      icon: LucideIcons.camera,
                       onPressed: _captureScreen,
                       tooltip: 'Tomar foto',
                     ),
@@ -788,7 +789,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.touch_app, color: Colors.white, size: 18),
+                  Icon(LucideIcons.hand, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
                     'Mariposa seleccionada - Usa gestos',
@@ -836,7 +837,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        Icons.camera_alt_outlined,
+                        LucideIcons.camera,
                         size: 40,
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -952,7 +953,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
                 ),
                 const SizedBox(height: 16),
                 _buildFloatingButton(
-                  icon: _isDayBackground ? Icons.wb_sunny : Icons.nights_stay,
+                  icon: _isDayBackground ? LucideIcons.sun : LucideIcons.moon,
                   onPressed: () {
                     setState(() {
                       _isDayBackground = !_isDayBackground;

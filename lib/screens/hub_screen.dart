@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class HubScreen extends StatefulWidget {
   const HubScreen({super.key});
@@ -94,16 +95,17 @@ class _HubScreenState extends State<HubScreen>
             Text(
               'ButterflyAR',
               style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,
+                height: 1.2,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              'Smurtfit Kappa',
-              style: theme.textTheme.bodyMedium?.copyWith(
+              'Smurfit Kappa',
+              style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.primary,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
             ),
@@ -117,13 +119,15 @@ class _HubScreenState extends State<HubScreen>
               color: theme.colorScheme.primary.withOpacity(0.2),
             ),
           ),
-          child: IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-            icon: Icon(
-              Icons.settings_outlined,
-              color: theme.colorScheme.onSurface,
+          child: GestureDetector(
+            onTap: () => Navigator.pushNamed(context, '/settings'),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                LucideIcons.settings,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
-            tooltip: 'Configuración',
           ),
         ),
       ],
@@ -136,16 +140,20 @@ class _HubScreenState extends State<HubScreen>
       children: [
         Text(
           'Explora el mundo\nde las mariposas',
-          style: theme.textTheme.displaySmall?.copyWith(
-            fontWeight: FontWeight.w300,
+          style: theme.textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.w700,
             height: 1.1,
             letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Text(
           'Descubre especies únicas con realidad aumentada y aprende sobre su fascinante mundo natural.',
-          style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            height: 1.6,
+            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.9),
+            letterSpacing: 0.2,
+          ),
         ),
       ],
     );
@@ -160,7 +168,7 @@ class _HubScreenState extends State<HubScreen>
           child: _buildPrimaryActionCard(
             context: context,
             theme: theme,
-            icon: Icons.qr_code_scanner_outlined,
+            icon: LucideIcons.qrCode,
             title: 'Escanear QR',
             subtitle: 'Escanea un código QR para ver una mariposa en RA',
             onTap: () => Navigator.pushNamed(context, '/qr'),
@@ -175,7 +183,7 @@ class _HubScreenState extends State<HubScreen>
           child: _buildSecondaryActionCard(
             context: context,
             theme: theme,
-            icon: Icons.explore_outlined,
+            icon: LucideIcons.compass,
             title: 'Ver especies',
             subtitle: 'Explora nuestra colección de mariposas',
             onTap: () => Navigator.pushNamed(context, '/species'),
@@ -193,88 +201,73 @@ class _HubScreenState extends State<HubScreen>
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.primary.withOpacity(0.8),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Icono
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(icon, size: 32, color: Colors.white),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Título
-            Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 8),
-
-            // Subtítulo
-            Text(
-              subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withOpacity(0.9),
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 16),
-
-            // Indicador de acción
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Tocar para comenzar',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withOpacity(0.8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.arrow_forward,
-                  size: 16,
-                  color: Colors.white.withOpacity(0.8),
-                ),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        transform: Matrix4.identity()..scale(1.0),
+        transformAlignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withOpacity(0.8),
               ],
             ),
-          ],
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withOpacity(0.3),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Icono
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, size: 32, color: Colors.white),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Título
+              Text(
+                title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 8),
+
+              // Subtítulo
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withOpacity(0.9),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              // const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
     );
@@ -288,61 +281,66 @@ class _HubScreenState extends State<HubScreen>
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.2),
-            width: 2,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        transform: Matrix4.identity()..scale(1.0),
+        transformAlignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.2),
+              width: 2,
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            // Icono
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
+          child: Row(
+            children: [
+              // Icono
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, size: 28, color: theme.colorScheme.primary),
               ),
-              child: Icon(icon, size: 28, color: theme.colorScheme.primary),
-            ),
 
-            const SizedBox(width: 20),
+              const SizedBox(width: 20),
 
-            // Contenido
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
+              // Contenido
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // Flecha
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 18,
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
-            ),
-          ],
+              // Flecha
+              Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ],
+          ),
         ),
       ),
     );

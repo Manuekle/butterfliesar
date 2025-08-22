@@ -21,6 +21,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
+    
+    // Auto-navigate to hub after 5 seconds
+    Future.delayed(const Duration(seconds: 5), _navigateToHub);
 
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
@@ -79,22 +82,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              theme.colorScheme.primary.withOpacity(0.1),
-                              theme.colorScheme.primary.withOpacity(0.05),
-                            ],
-                          ),
-                          shape: BoxShape.circle,
+                        decoration: const BoxDecoration(
+                          color: Colors.transparent,
                         ),
                         child: Center(
-                          child: Icon(
-                            Icons.flutter_dash_outlined,
-                            size: 120,
-                            color: theme.colorScheme.primary,
+                          child: Image.asset(
+                            'assets/icon/favicon.png',
+                            width: 240,
+                            height: 240,
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
@@ -113,9 +109,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         // Título principal
                         Text(
                           'ButterflyAR',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                             letterSpacing: -0.5,
+                            height: 1.2,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -124,22 +121,24 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
                         // Subtítulo
                         Text(
-                          'Smurtfit Kappa',
+                          'Smurfit Kappa',
                           style: theme.textTheme.titleMedium?.copyWith(
                             color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
                           ),
                           textAlign: TextAlign.center,
                         ),
 
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
 
                         // Descripción
                         Text(
                           'Descubre el fascinante mundo de las mariposas\ncon realidad aumentada',
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            height: 1.5,
+                            height: 1.6,
+                            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.9),
+                            letterSpacing: 0.2,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -148,102 +147,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   ),
                 ),
 
-                // Botón de entrada
+                // Bottom spacer
                 Expanded(
                   flex: 1,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _navigateToHub,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Comenzar',
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.arrow_forward, size: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Indicador de funcionalidades
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withOpacity(0.2),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.qr_code_scanner_outlined,
-                                size: 16,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Escanea QR',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Container(
-                                width: 1,
-                                height: 12,
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.3,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Icon(
-                                Icons.explore_outlined,
-                                size: 16,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Explora especies',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: size.height * 0.05),
-                      ],
-                    ),
-                  ),
+                  child: const SizedBox(),
                 ),
               ],
             ),

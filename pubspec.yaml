@@ -42,10 +42,12 @@ dependencies:
   path: ^1.8.3
   camera: ^0.10.5+2
   model_viewer_plus: ^1.5.0
+  lucide_icons_flutter: ^3.0.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -64,6 +66,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/icon/favicon.png
     - assets/images/
     - assets/models/
     - assets/sounds/

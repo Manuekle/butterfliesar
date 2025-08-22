@@ -1,5 +1,6 @@
 // qr_scan_screen.dart
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -135,7 +136,7 @@ class _QRScanScreenState extends State<QRScanScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.block, color: Theme.of(context).colorScheme.error),
+            Icon(LucideIcons.ban, color: Theme.of(context).colorScheme.error),
             const SizedBox(width: 12),
             const Text('Acceso Restringido'),
           ],
@@ -220,7 +221,7 @@ class _QRScanScreenState extends State<QRScanScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.camera_alt, color: Theme.of(context).primaryColor),
+            Icon(LucideIcons.camera, color: Theme.of(context).primaryColor),
             const SizedBox(width: 12),
             const Text('Permiso de Cámara'),
           ],
@@ -350,7 +351,7 @@ class _QRScanScreenState extends State<QRScanScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.search_off, color: Colors.orange, size: 28),
+            Icon(LucideIcons.searchX, color: Colors.orange, size: 28),
             const SizedBox(width: 12),
             const Text('Código no encontrado'),
           ],
@@ -405,7 +406,7 @@ class _QRScanScreenState extends State<QRScanScreen>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 28),
+            Icon(LucideIcons.triangleAlert, color: Colors.red, size: 28),
             const SizedBox(width: 12),
             const Text('Error'),
           ],
@@ -564,7 +565,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                 child: Column(
                   children: [
                     Icon(
-                      Icons.camera_alt_outlined,
+                      LucideIcons.camera,
                       size: 64,
                       color: Colors.white.withOpacity(0.8),
                     ),
@@ -594,7 +595,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: _checkCameraPermission,
-                            icon: const Icon(Icons.refresh),
+                            icon: const Icon(LucideIcons.refreshCw),
                             label: const Text('Reintentar'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -609,7 +610,7 @@ class _QRScanScreenState extends State<QRScanScreen>
                           width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: openAppSettings,
-                            icon: const Icon(Icons.settings),
+                            icon: const Icon(LucideIcons.settings),
                             label: const Text('Abrir Configuración'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
@@ -645,7 +646,7 @@ class _QRScanScreenState extends State<QRScanScreen>
       actions: [
         IconButton(
           onPressed: _toggleFlash,
-          icon: Icon(_isFlashOn ? Icons.flash_on : Icons.flash_off),
+          icon: Icon(_isFlashOn ? LucideIcons.zap : LucideIcons.zapOff),
           tooltip: _isFlashOn ? 'Apagar flash' : 'Encender flash',
           style: IconButton.styleFrom(
             backgroundColor: _isFlashOn
@@ -814,7 +815,7 @@ class _QRScanScreenState extends State<QRScanScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              _isScanning ? Icons.qr_code_scanner : Icons.hourglass_empty,
+              _isScanning ? LucideIcons.qrCode : LucideIcons.hourglass,
               color: Colors.white,
               size: 32,
             ),
@@ -864,13 +865,13 @@ class _QRScanScreenState extends State<QRScanScreen>
             children: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: Colors.white),
+                icon: const Icon(LucideIcons.x, color: Colors.white),
                 tooltip: 'Cerrar',
               ),
               const SizedBox(width: 20),
               IconButton(
                 onPressed: _resetScanner,
-                icon: const Icon(Icons.refresh, color: Colors.white),
+                icon: const Icon(LucideIcons.refreshCw, color: Colors.white),
                 tooltip: 'Reiniciar escáner',
               ),
             ],
