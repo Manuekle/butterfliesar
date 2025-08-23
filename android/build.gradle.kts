@@ -15,10 +15,19 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://maven.google.com") }
-        maven { url = uri("https://google.bintray.com/arcore") }
         maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         maven { url = uri("https://jitpack.io") }
+    }
+
+    // CLAVE: Forzar la versión de Kotlin para todos los subproyectos
+    configurations.all {
+        resolutionStrategy {
+            force("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-common:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+        }
     }
 
     // Configuración común para todos los subproyectos
@@ -65,6 +74,17 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+
+    // IMPORTANTE: Forzar versión de Kotlin en todos los subproyectos
+    configurations.all {
+        resolutionStrategy {
+            force("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-common:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.1.0")
+            force("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+        }
+    }
 
     // Configuración común para proyectos con plugin de Android
     pluginManager.withPlugin("com.android.application") {

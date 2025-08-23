@@ -1,16 +1,13 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import com.android.build.api.dsl.BuildType
-
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("dev.flutter.flutter-gradle-plugin")
+    id("com.android.application") version "8.1.0"
+    kotlin("android") version "1.8.10"
+    id("dev.flutter.flutter-gradle-plugin") version "1.0.0"
 }
 
 android {
     namespace = "com.example.butterfliesar"
-    compileSdk = 36  // Actualizado a la versión más alta requerida por los plugins
-    ndkVersion = "27.0.12077973"  // Versión requerida por los plugins
+    compileSdk = 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -24,18 +21,11 @@ android {
 
     defaultConfig {
         applicationId = "com.example.butterfliesar"
-        minSdk = 24  // Mínimo para ARCore
+        minSdkVersion flutter.minSdkVersion  // Minimum SDK level for ModelViewer
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-        
-        ndk {
-            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
-        }
-    }
-
-    buildFeatures {
-        buildConfig = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -71,23 +61,8 @@ dependencies {
     // Java 8+ API desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
-    // ARCore library
-    implementation("com.google.ar:core:1.40.0")  // Versión ligeramente anterior más estable
-    
-    // Sceneform
-    implementation("com.google.ar.sceneform:core:1.17.1")
-    implementation("com.google.ar.sceneform.ux:sceneform-ux:1.17.1")
-    
-    // Excluir duplicados
-    configurations.all {
-        exclude(group = "com.google.flatbuffers", module = "flatbuffers-java")
-        exclude(group = "com.google.ar.sceneform", module = "plugin")
-    }
-}
-
-// Asegurar que el plugin ARCore se configure correctamente
-afterEvaluate {
-    tasks.named("mergeReleaseResources") {
-        dependsOn(":arcore_flutter_plugin:extractProguardFiles")
-    }
+    // AndroidX Test
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

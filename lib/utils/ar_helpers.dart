@@ -1,4 +1,4 @@
-// lib/utils/ar_helpers.dart - Versión simplificada y funcional
+// lib/utils/ar_helpers.dart - Versión para ARKit (iOS) y Model Viewer (Android)
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -6,12 +6,11 @@ import 'package:device_info_plus/device_info_plus.dart';
 /// Enum para diferentes tipos de soporte AR
 enum ARPlatformSupport {
   arkit, // iOS ARKit
-  arcore, // Android ARCore
-  webAR, // Web AR (futuro)
+  modelViewer, // Android Model Viewer
   none, // Sin soporte AR
 }
 
-/// Clase simplificada para manejar detección AR
+/// Clase para manejar la detección de AR
 class SimpleARSupport {
   static ARPlatformSupport _cachedSupport = ARPlatformSupport.none;
   static bool _hasChecked = false;
@@ -21,75 +20,39 @@ class SimpleARSupport {
     if (_hasChecked) return _cachedSupport;
 
     try {
-      // Web: sin soporte AR nativo por ahora
+      // Web: sin soporte AR nativo
       if (kIsWeb) {
-        _cachedSupport = ARPlatformSupport.webAR;
-        _hasChecked = true;
-        return _cachedSupport;
+        _cachedSupport = ARPlatformSupport.none;
       }
-
-      // iOS: verificar soporte ARKit (iOS 11+ con procesador A9+)
-      if (Platform.isIOS) {
+      // iOS: verificar soporte ARKit (iOS 11+)
+      else if (Platform.isIOS) {
         try {
           final deviceInfo = DeviceInfoPlugin();
           final iosInfo = await deviceInfo.iosInfo;
-
-          // Verificar versión mínima iOS 11 y modelos compatibles
           final systemVersion = iosInfo.systemVersion;
           final majorVersion =
               int.tryParse(systemVersion.split('.').first) ?? 0;
 
-          // ARKit requiere iOS 11+ y procesador A9+
-          // Simplificamos asumiendo que dispositivos recientes tienen soporte
-          if (majorVersion >= 11) {
-            _cachedSupport = ARPlatformSupport.arkit;
-          } else {
-            _cachedSupport = ARPlatformSupport.none;
-          }
+          // ARKit requiere iOS 11+
+          _cachedSupport = majorVersion >= 11
+              ? ARPlatformSupport.arkit
+              : ARPlatformSupport.none;
         } catch (e) {
           debugPrint('Error checking iOS ARKit support: $e');
-          // Fallback: asumir soporte si es iOS moderno
-          _cachedSupport = ARPlatformSupport.arkit;
+          _cachedSupport = ARPlatformSupport.none;
         }
       }
-      // Android: verificar soporte ARCore
+      // Android: Usar Model Viewer
       else if (Platform.isAndroid) {
-        try {
-          final deviceInfo = DeviceInfoPlugin();
-          final androidInfo = await deviceInfo.androidInfo;
-
-          // ARCore requiere Android 7.0+ (API 24+) en la mayoría de dispositivos
-          if (androidInfo.version.sdkInt >= 24) {
-            _cachedSupport = ARPlatformSupport.arcore;
-          } else {
-            _cachedSupport = ARPlatformSupport.none;
-          }
-        } catch (e) {
-          debugPrint('Error checking Android ARCore support: $e');
-          // Fallback: asumir soporte si es Android moderno
-          _cachedSupport = ARPlatformSupport.arcore;
-        }
+        _cachedSupport = ARPlatformSupport.modelViewer;
       }
-      // Otras plataformas: sin soporte
-      else {
-        _cachedSupport = ARPlatformSupport.none;
-      }
-
-      _hasChecked = true;
-      return _cachedSupport;
     } catch (e) {
       debugPrint('Error detecting AR support: $e');
       _cachedSupport = ARPlatformSupport.none;
-      _hasChecked = true;
-      return _cachedSupport;
     }
-  }
 
-  /// Verifica si el dispositivo tiene soporte AR
-  static Future<bool> hasARSupport() async {
-    final support = await detectARSupport();
-    return support != ARPlatformSupport.none &&
-        support != ARPlatformSupport.webAR;
+    _hasChecked = true;
+    return _cachedSupport;
   }
 
   /// Obtiene información legible sobre el soporte AR
@@ -97,13 +60,12 @@ class SimpleARSupport {
     final support = await detectARSupport();
     switch (support) {
       case ARPlatformSupport.arkit:
-        return 'ARKit compatible (iOS 11+)';
-      case ARPlatformSupport.arcore:
-        return 'ARCore compatible (Android 7.0+)';
-      case ARPlatformSupport.webAR:
-        return 'Web AR (limitado)';
+        return 'ARKit (iOS)';
+      case ARPlatformSupport.modelViewer:
+        return '3D Model Viewer (Android)';
       case ARPlatformSupport.none:
-        return 'AR no soportado en este dispositivo';
+      default:
+        return 'No compatible';
     }
   }
 
