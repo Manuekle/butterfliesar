@@ -2,22 +2,29 @@
 
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 
-/// Retorna true si el dispositivo soporta AR (ARCore/ARKit)
+/// Verifica si el dispositivo puede ejecutar AR basado en la plataforma
+///
+/// Devuelve true si el dispositivo es compatible con AR (Android o iOS),
+/// false en caso contrario.
+///
+/// Nota: Esta es una verificación básica de plataforma. Para una verificación
+/// más precisa, se debería implementar la inicialización del plugin AR
+/// en la pantalla principal y manejar los errores de forma adecuada.
 Future<bool> isARSupported() async {
+  // No hay soporte para web
   if (kIsWeb) return false;
-  
-  try {
-    // Usar el método del plugin para verificar soporte de AR
-    final arPlugin = ARFlutterPlugin();
-    final isSupported = await arPlugin.checkIfARSupported();
-    return isSupported;
-  } catch (e) {
-    // Si hay un error, usar un chequeo básico
-    if (Platform.isAndroid || Platform.isIOS) {
-      return true; // Asumir soporte básico para Android/iOS
-    }
-    return false;
+
+  // Verificar plataforma
+  if (!Platform.isAndroid && !Platform.isIOS) {
+    return false; // Solo soportamos Android e iOS
   }
+
+  // Para una implementación más robusta, podrías querer:
+  // 1. Inicializar el plugin AR en el inicio de la app
+  // 2. Almacenar el estado de compatibilidad
+  // 3. Usar ese estado aquí
+
+  // Por ahora, asumimos que si es Android o iOS, tiene soporte básico de AR
+  return true;
 }
