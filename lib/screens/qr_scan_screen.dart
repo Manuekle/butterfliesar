@@ -1,8 +1,9 @@
 // qr_scan_screen.dart
+import 'dart:async';
+import 'dart:io' show Platform;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:flutter/cupertino.dart';
-import 'dart:io';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:butterfliesar/models/butterfly_loader.dart';
@@ -85,28 +86,91 @@ class _QRScanScreenState extends State<QRScanScreen>
   }
 
   Future<void> _checkCameraHardware() async {
+    // Liberar recursos de la cámara si ya existe un controlador
+    if (_scannerController != null) {
+      try {
+        await _scannerController!.stop();
+        await _scannerController!.dispose();
+      } catch (e) {
+        debugPrint('Error al liberar recursos de la cámara: $e');
+      }
+    }
+
     try {
-      // Intentar inicializar el controlador de escáner
+      // Inicializar el controlador con configuración mínima inicial
       _scannerController = MobileScannerController(
-        detectionSpeed: DetectionSpeed.noDuplicates,
+        detectionSpeed: DetectionSpeed.normal,
         facing: CameraFacing.back,
         torchEnabled: false,
       );
 
-      // Verificar si hay cámaras disponibles
-      await _scannerController.switchCamera();
+      // Función para verificar si la cámara está lista
+      Future<bool> _isCameraReady() async {
+        try {
+          // Intentar acceder a una propiedad del controlador
+          await _scannerController!.toggleTorch();
+          await _scannerController!.toggleTorch();
+          return true;
+        } catch (e) {
+          debugPrint('Error verificando cámara: $e');
+          return false;
+        }
+      }
+
+      // Intentar con la cámara trasera primero
+      bool cameraReady = false;
+      
+      try {
+        await _scannerController!.start();
+        // Esperar un momento para que la cámara se inicialice
+        await Future.delayed(const Duration(milliseconds: 800));
+        cameraReady = await _isCameraReady();
+      } catch (e) {
+        debugPrint('Error con cámara trasera: $e');
+      }
+
+      // Si falla, intentar con la cámara frontal
+      if (!cameraReady && mounted) {
+        setState(() {
+          _cameraError = 'Probando con cámara frontal...';
+        });
+        
+        try {
+          await _scannerController!.stop();
+          await _scannerController!.dispose();
+          
+          _scannerController = MobileScannerController(
+            detectionSpeed: DetectionSpeed.normal,
+            facing: CameraFacing.front,
+            torchEnabled: false,
+          );
+          
+          await _scannerController!.start();
+          await Future.delayed(const Duration(milliseconds: 800));
+          cameraReady = await _isCameraReady();
+        } catch (e) {
+          debugPrint('Error con cámara frontal: $e');
+        }
+      }
+
+      if (!cameraReady) {
+        throw Exception('No se pudo inicializar ninguna cámara');
+      }
 
       if (mounted) {
         setState(() {
           _hasCameraHardware = true;
           _isCheckingPermission = false;
+          _cameraError = null;
         });
       }
     } catch (error) {
+      debugPrint('Error initializing camera: $error');
       if (mounted) {
         setState(() {
           _hasCameraHardware = false;
-          _cameraError = error.toString();
+          _cameraError =
+              'No se pudo acceder a la cámara. Asegúrate de que la aplicación tenga los permisos necesarios.';
           _isCheckingPermission = false;
         });
         _showNoCameraDialog();

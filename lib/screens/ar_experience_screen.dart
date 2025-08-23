@@ -9,13 +9,14 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import 'package:model_viewer_plus/model_viewer_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 // Imports condicionales para AR
 import 'package:arkit_plugin/arkit_plugin.dart'
     if (dart.library.html) 'package:flutter/foundation.dart';
 import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart'
     if (dart.library.html) 'package:flutter/foundation.dart';
-import 'package:model_viewer_plus/model_viewer_plus.dart';
-
 import 'package:butterfliesar/models/butterfly.dart';
 import 'package:butterfliesar/utils/ar_helpers.dart';
 
@@ -46,6 +47,7 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
   bool _isModelSelected = false;
   bool _showingInfo = false;
   bool _isModelLoaded = false;
+  bool _isLoadingModel = true;
 
   // Variables para animaciones y control del modelo
   Timer? _rotationTimer;
@@ -406,48 +408,94 @@ class _ARExperienceScreenState extends State<ARExperienceScreen>
               children: [
                 // Mostrar modelo 3D si está disponible
                 if (selectedButterfly.modelAsset != null)
-                  SizedBox(
+                  Container(
                     height: 300,
                     width: 300,
-                    child: ModelViewer(
-                      backgroundColor: Colors.transparent,
-                      src: selectedButterfly.modelAsset!,
-                      alt: "Modelo 3D de ${selectedButterfly.name}",
-                      ar: false,
-                      autoRotate: true,
-                      cameraControls: true,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Stack(
+                      children: [
+                        // ModelViewer para la web
+                        if (kIsWeb)
+                          ModelViewer(
+                            backgroundColor: Colors.transparent,
+                            src: selectedButterfly.modelAsset!,
+                            alt: "Modelo 3D de ${selectedButterfly.name}",
+                            ar: false,
+                            autoRotate: true,
+                            cameraControls: true,
+                            autoPlay: true,
+                          )
+                        // ModelViewer para dispositivos móviles
+                        else
+                          ModelViewer(
+                            backgroundColor: Colors.transparent,
+                            src: selectedButterfly.modelAsset!,
+                            alt: "Modelo 3D de ${selectedButterfly.name}",
+                            ar: false,
+                            autoRotate: true,
+                            cameraControls: true,
+                            autoPlay: true,
+                            cameraOrbit: "0deg 75deg 2m",
+                            shadowIntensity: 1,
+                            shadowSoftness: 1,
+                            loading: Loading.eager,
+                            disableZoom: false,
+                            disablePan: false,
+                            autoRotateDelay: 0,
+                            arModes: const [],
+                          ),
+                        // Indicador de carga
+                        if (_isLoadingModel)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                      ],
                     ),
                   )
                 else
-                  Column(
-                    children: [
-                      Icon(
-                        _arSupport == ARPlatformSupport.none
-                            ? Icons.phone_android
-                            : LucideIcons.box,
-                        size: 64,
-                        color: Colors.white,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        _arSupport == ARPlatformSupport.none
-                            ? 'Vista previa 3D'
-                            : 'Modelo 3D',
-                        style: TextStyle(
+                  Container(
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _arSupport == ARPlatformSupport.none
+                              ? Icons.phone_android
+                              : LucideIcons.box,
+                          size: 64,
                           color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        _arSupport != ARPlatformSupport.none
-                            ? 'Toca el botón AR para realidad aumentada'
-                            : 'AR no soportado en este dispositivo',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        SizedBox(height: 16),
+                        Text(
+                          _arSupport == ARPlatformSupport.none
+                              ? 'Vista previa 3D no disponible'
+                              : 'Modelo 3D no disponible',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _arSupport != ARPlatformSupport.none
+                              ? 'El modelo 3D no está disponible para esta mariposa.'
+                              : 'Este dispositivo no soporta realidad aumentada.',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
