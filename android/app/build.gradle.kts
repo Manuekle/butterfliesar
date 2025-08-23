@@ -1,13 +1,13 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id("com.android.application") version "8.1.0"
-    kotlin("android") version "1.8.10"
-    id("dev.flutter.flutter-gradle-plugin") version "1.0.0"
+    id("com.android.application")
+    kotlin("android")
+    id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.butterfliesar"
-    compileSdk = 34
+    compileSdk = 36
+    buildToolsVersion = "34.0.0"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.butterfliesar"
-        minSdkVersion flutter.minSdkVersion  // Minimum SDK level for ModelViewer
+        minSdk = 24  // Must match the version set in root build.gradle.kts
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
