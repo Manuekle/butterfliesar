@@ -1,4 +1,4 @@
-// lib/utils/ar_helpers.dart - Versión simplificada y funcional
+// lib/utils/simple_ar_helpers.dart
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';

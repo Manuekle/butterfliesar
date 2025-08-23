@@ -46,13 +46,16 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-    <string>Necesitamos acceso a la cámara para escanear códigos QR.</string>
+    <string>Esta aplicación necesita acceso a la cámara para mostrar mariposas en realidad aumentada.</string>
 
     <key>NSMicrophoneUsageDescription</key>
     <string>Se requiere acceso al micrófono para experiencias de realidad aumentada.</string>
 
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Necesitamos acceso a la galería para guardar y cargar imágenes.</string>
+    
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
 
 </dict>
 </plist>

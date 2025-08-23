@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'ar_experience_screen.dart';
 import 'butterfly_static_screen.dart';
 import 'package:butterfliesar/models/butterfly.dart';
-import 'package:butterfliesar/utils/ar_helpers.dart';
+import 'package:butterfliesar/utils/ar_helpers.dart' show SimpleARSupport, ARPlatformSupport;
 import 'package:vibration/vibration.dart';
 import 'package:butterfliesar/widgets/animated_toast.dart';
 
@@ -35,12 +35,21 @@ class _AnimatedButterflyViewState extends State<AnimatedButterflyView> {
   }
 
   Future<void> _checkARSupport() async {
-    final supported = await isARSupported();
-    setState(() {
-      _arSupported = supported;
-      _checkedAR = true;
-      if (!supported) _showAR = false;
-    });
+    try {
+      final support = await SimpleARSupport.detectARSupport();
+      setState(() {
+        _arSupported = support != ARPlatformSupport.none;
+        _checkedAR = true;
+        if (!_arSupported) _showAR = false;
+      });
+    } catch (e) {
+      debugPrint('Error checking AR support: $e');
+      setState(() {
+        _arSupported = false;
+        _checkedAR = true;
+        _showAR = false;
+      });
+    }
   }
 
   Future<void> _toggleMode() async {

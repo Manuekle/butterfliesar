@@ -1,10 +1,27 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permisos para ARCore -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
-    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Características requeridas para ARCore -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.ar"
+        android:required="false" />
+    
+    <!-- Declara que la app usa ARCore -->
+    <uses-feature
+        android:name="android.software.ar"
+        android:required="false" />
     <application
-        android:label="butterfliesar"
-        android:name="${applicationName}"
+        android:label="Butterflies AR"
+        android:name=".ButterfliesArApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -30,6 +47,11 @@
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <!-- Metadatos para ARCore -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional" />
+            
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
